@@ -13,17 +13,16 @@
     ],
     "require" : {
         "php": ">=5.3.2",
-        "symfony/framework-bundle": "~2.1"
+        "symfony/framework-bundle": "~2.3"
     },
     "suggest": {
         "ext-apc": "To cache generated Thumbnails using APC"
     },
     "autoload" : {
-        "psr-0" : {
-            "JuSt\\ThumbnailBundle" : ""
+        "psr-4" : {
+            "JuSt\\ThumbnailBundle\\" : ""
         }
     },
-    "target-dir" : "JuSt/ThumbnailBundle",
     
     "extra" : {
         "branch-alias" : {
