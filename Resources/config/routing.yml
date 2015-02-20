@@ -6,7 +6,7 @@ ju_st_thumbnail_homepage:
 
 ju_st_thumbnail_extension:
     pattern:  /thumbnails/{mode}/{maxx}x{maxy}/{img}.{extension}
-    defaults: { _controller: JSThumbnailBundle:Thumbnail:thumbnail }
+    defaults: { _controller: JuStThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
         #maxx: ~
@@ -16,7 +16,7 @@ ju_st_thumbnail_extension:
 
 ju_st_thumbnail_x_extension:
     pattern:  /thumbnails/{mode}/{maxx}x/{img}.{extension}
-    defaults: { _controller: JSThumbnailBundle:Thumbnail:thumbnail }
+    defaults: { _controller: JuStThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
         #maxx: ~
@@ -25,7 +25,7 @@ ju_st_thumbnail_x_extension:
 
 ju_st_thumbnail_y_extension:
     pattern:  /thumbnails/{mode}/x{maxy}/{img}.{extension}
-    defaults: { _controller: JSThumbnailBundle:Thumbnail:thumbnail }
+    defaults: { _controller: JuStThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
         #maxy: ~
@@ -35,7 +35,7 @@ ju_st_thumbnail_y_extension:
 #JS\ThumbnailBundle\Controller
 ju_st_thumbnail:
     pattern:  /thumbnails/{mode}/{maxx}x{maxy}/{img}
-    defaults: { _controller: JSThumbnailBundle:Thumbnail:thumbnail }
+    defaults: { _controller: JuStThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
         #maxx: ~
@@ -44,7 +44,7 @@ ju_st_thumbnail:
 
 ju_st_thumbnail_x:
     pattern:  /thumbnails/{mode}/{maxx}x/{img}
-    defaults: { _controller: JSThumbnailBundle:Thumbnail:thumbnail }
+    defaults: { _controller: JuStThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
         #maxx: ~
@@ -52,7 +52,7 @@ ju_st_thumbnail_x:
 
 ju_st_thumbnail_y:
     pattern:  /thumbnails/{mode}/x{maxy}/{img}
-    defaults: { _controller: JSThumbnailBundle:Thumbnail:thumbnail }
+    defaults: { _controller: JuStThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
         #maxy: ~
