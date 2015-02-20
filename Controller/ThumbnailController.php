@@ -11,7 +11,6 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class ThumbnailController extends Controller {
 
     public function thumbnailAction(Request $request) {
-        ini_set("gd.jpeg_ignore_warning", 1);
         if (1 !== ini_get('gd.jpeg_ignore_warning')) {
             $logger = $this->get('logger');
             $logger->warning('The JustThumbnailBundle needs to have gd.jpeg_ignore_warning set to "1". Please set gd.jpeg_ignore_warning to false in your php.ini, and restart your webserver.');
