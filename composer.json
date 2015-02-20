@@ -20,7 +20,7 @@
     },
     "autoload" : {
         "psr-0" : {
-            "JuSt\\ThumbnailBundle" : ""
+            "JuSt\\ThumbnailBundle" : "src"
         }
     },
     "target-dir" : "JuSt/ThumbnailBundle",
