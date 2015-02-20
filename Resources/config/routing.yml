@@ -1,12 +1,12 @@
-ju_st_thumbnail_homepage:
+just_thumbnail_homepage:
     path:     /hello/{name}
-    defaults: { _controller: JuStThumbnailBundle:Default:index }
+    defaults: { _controller: JustThumbnailBundle:Default:index }
 
 
 
-ju_st_thumbnail_extension:
+just_thumbnail_extension:
     pattern:  /thumbnails/{mode}/{maxx}x{maxy}/{img}.{extension}
-    defaults: { _controller: JuStThumbnailBundle:Thumbnail:thumbnail }
+    defaults: { _controller: JustThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
         #maxx: ~
@@ -14,18 +14,18 @@ ju_st_thumbnail_extension:
         img: ".+"
         extension: "[a-z]{0,4}"
 
-ju_st_thumbnail_x_extension:
+just_thumbnail_x_extension:
     pattern:  /thumbnails/{mode}/{maxx}x/{img}.{extension}
-    defaults: { _controller: JuStThumbnailBundle:Thumbnail:thumbnail }
+    defaults: { _controller: JustThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
         #maxx: ~
         img: ".+"
         extension: "[a-z]{0,4}"
 
-ju_st_thumbnail_y_extension:
+just_thumbnail_y_extension:
     pattern:  /thumbnails/{mode}/x{maxy}/{img}.{extension}
-    defaults: { _controller: JuStThumbnailBundle:Thumbnail:thumbnail }
+    defaults: { _controller: JustThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
         #maxy: ~
@@ -33,26 +33,26 @@ ju_st_thumbnail_y_extension:
         extension: "[a-z]{0,4}"
 
 #JS\ThumbnailBundle\Controller
-ju_st_thumbnail:
+just_thumbnail:
     pattern:  /thumbnails/{mode}/{maxx}x{maxy}/{img}
-    defaults: { _controller: JuStThumbnailBundle:Thumbnail:thumbnail }
+    defaults: { _controller: JustThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
         #maxx: ~
         #maxy: ~
         img: ".+"
 
-ju_st_thumbnail_x:
+just_thumbnail_x:
     pattern:  /thumbnails/{mode}/{maxx}x/{img}
-    defaults: { _controller: JuStThumbnailBundle:Thumbnail:thumbnail }
+    defaults: { _controller: JustThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
         #maxx: ~
         img: ".+"
 
-ju_st_thumbnail_y:
+just_thumbnail_y:
     pattern:  /thumbnails/{mode}/x{maxy}/{img}
-    defaults: { _controller: JuStThumbnailBundle:Thumbnail:thumbnail }
+    defaults: { _controller: JustThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
         #maxy: ~

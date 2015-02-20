@@ -1,6 +1,6 @@
 <?php
 
-namespace JuSt\ThumbnailBundle\Controller;
+namespace Just\ThumbnailBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -39,7 +39,7 @@ class ThumbnailController extends Controller {
         }
         $expires = 1 * 24 * 60 * 60;
         $cachename = md5($imgname . $maxx . $maxy . $mode . $ctime);
-        if ($cachefile = $this->get('cache')->fetch('JuStThumbnailBundle' . $cachename)) {
+        if ($cachefile = $this->get('cache')->fetch('JustThumbnailBundle' . $cachename)) {
             //ist bereits im cache:
             $uscachefile = unserialize($cachefile);
             $response = new Response($uscachefile);
@@ -148,7 +148,7 @@ class ThumbnailController extends Controller {
 
             $ImageData = ob_get_contents();
             ob_end_clean(); // stop this output buffer
-            $this->get('cache')->save('JuStThumbnailBundle' . $cachename, serialize($ImageData));
+            $this->get('cache')->save('JustThumbnailBundle' . $cachename, serialize($ImageData));
 
             $response = new Response($ImageData);
 
