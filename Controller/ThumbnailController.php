@@ -12,13 +12,25 @@ class ThumbnailController extends Controller {
 
     public function thumbnailAction(Request $request) {
         ini_set("gd.jpeg_ignore_warning", 1);
+        if (1 !== ini_get('gd.jpeg_ignore_warning')) {
+            $logger = $this->get('logger');
+            $logger->warning('The JustThumbnailBundle needs to have gd.jpeg_ignore_warning set to "1". Please set gd.jpeg_ignore_warning to false in your php.ini, and restart your webserver.');
+        }
+        
         $img = $request->get('img', null);
         $maxx = $request->get('maxx', '');
         $maxy = $request->get('maxy', '');
         $mode = $request->get('mode', 'normal');
+        $placeholder = $request->get('placeholder', '');
+        $response=$this->generateResponseForImage($img,$maxx,$maxy,$mode,$placeholder);
+        return $response;
+    }
+    
+    private function generateResponseForImage($img,$maxx,$maxy,$mode,$placeholderparam){
+        
         $imagesrootdir =  $this->container->hasParameter('just_thumbnailbundle.imagesrootdir') ? $this->container->getParameter('just_thumbnailbundle.imagesrootdir') : $this->container->getParameter('kernel.root_dir') . '/../web/';
         $placeholder = $this->container->hasParameter('just_thumbnailbundle.placeholder') ? $this->container->getParameter('just_thumbnailbundle.placeholder') : null;
-        $placeholder = $request->get('placeholder', $placeholder);
+        $placeholder = $placeholderparam!='' ? $placeholderparam : $placeholder;
         
         $imgname = $imagesrootdir . ltrim($img,'/\\');
         if (!is_file($imgname) || !is_readable($imgname)) {
@@ -61,9 +73,7 @@ class ThumbnailController extends Controller {
             } else if ($info[2] == 6) { //Original ist ein BMP
                 $oimage = $this->imagecreatefrombmp($imgname);
             } else {
-//                print_r($info);
                 throw new HttpException(500, "Error reading image");
-                //throw $this->createNotFoundException('The image does not exist or is not readable');
             }
             $ogrx = $info[0];
             $ogry = $info[1];
@@ -118,7 +128,6 @@ class ThumbnailController extends Controller {
                 imagealphablending($image, false);
                 imagesavealpha($image, true);
                 $farbe_body = imagecolorallocate($image, 0, 0, 0);
-                $trans = imagecolortransparent($image, $farbe_body);
             } else if ($info[2] == 1) { //GIF
                 $farbe_body = imagecolorallocate($image, 255, 255, 255);
             }
