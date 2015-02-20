@@ -1,0 +1,30 @@
+{
+    "name" : "just/thumbnailbundle",
+    "description" : "A Symfony2 bundle that creates Thumbnails on the fly using the GD library",
+    "type" : "symfony-bundle",
+    "authors" : [{
+        "name" : "Julian Stricker",
+        "email" : "julian@julianstricker.com"
+    }],
+    "keywords" : ["Thumbnail", "symfony2", "bundle"],
+    "license" : [
+        "MIT"
+    ],
+    "require" : {
+        "php": ">=5.3.2",
+        "symfony/framework-bundle": "~2.1"
+    },
+    "autoload" : {
+        "psr-0" : {
+            "Just\\ThumbnailBundle" : ""
+        }
+    },
+    "target-dir" : "Just/ThumbnailBundle",
+    "repositories" : [{
+    }],
+    "extra" : {
+    "branch-alias" : {
+            "dev-master" : "1.0.x-dev"
+        }
+    }
+}
