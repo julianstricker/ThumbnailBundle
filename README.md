@@ -1,32 +1,45 @@
-= Just/ThumbnailBundle - Symfony2 Bundle for on-the-fly Thumbnails Creation =
+Just/ThumbnailBundle - Symfony2 Bundle for on-the-fly Thumbnails Creation
+=========================================================================
 
-== Overview ==
+
+Overview
+========
 
 The bundle creates Thumbnails on the fly using GD for the Symfony2 framework. It uses the Symfony cache system to cache the thumbnails.
 It creates a thumbnail of a image in the given size and stores it in cache for the next calls, until the image changes.
 
-== License ==
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/f97fef15-6eb9-45e2-9973-5948514a4864/big.png)](https://insight.sensiolabs.com/projects/f97fef15-6eb9-45e2-9973-5948514a4864)
+
+
+License
+=======
 
 This bundle is released under the [MIT license](Resources/meta/LICENSE)
 
-== Installation ==
+Installation
+============
 
-To install the plugin use `symfony plugin-install` command
-{{{
+1) Add the following line to your composer.json require block:
+    "just/thumbnailbundle": "dev-master"
 
-symfony plugin-install http://plugins.symfony-project.com/jsTumbnailPlugin
+    The standard symfony 2.2 composer.json file has a branch alias that interferes with installing this bundle.  You can work around by removing the lines
+```
+ "branch-alias": {
+            "dev-master": "2.2-dev"
+        }
+```
 
-}}}
+2) Modify your AppKernel with the following line:
 
-== Using the plugin ==
+    new Just\ThumbnailBundle\JustThumbnailBundle(),
+
+3) Execute composer install
+
+Using the plugin
+================
+
 Enable one or more modules in your settings.yml  * jsThumbnail
-{{{
 
-all:
-  .settings:
-    enabled_modules:        [ default, jsThumbnail ]
-    
-}}}
 
 In your template call something like this:
 {{{
