@@ -1,4 +1,4 @@
-= JuSt/ThumbnailBundle - Symfony2 Bundle for on-the-fly Thumbnails Creation =
+= Just/ThumbnailBundle - Symfony2 Bundle for on-the-fly Thumbnails Creation =
 
 == Overview ==
 

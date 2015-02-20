@@ -1,6 +1,6 @@
 <?php
 
-namespace JuSt\ThumbnailBundle;
+namespace Just\ThumbnailBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

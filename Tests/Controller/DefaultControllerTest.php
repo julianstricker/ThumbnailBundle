@@ -1,6 +1,6 @@
 <?php
 
-namespace JuSt\ThumbnailBundle\Tests\Controller;
+namespace Just\ThumbnailBundle\Tests\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 

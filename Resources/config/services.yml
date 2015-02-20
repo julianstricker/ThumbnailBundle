@@ -1,4 +1,4 @@
 services:
-#    ju_st_thumbnail.example:
-#        class: JuSt\ThumbnailBundle\Example
+#    just_thumbnail.example:
+#        class: Just\ThumbnailBundle\Example
 #        arguments: [@service_id, "plain_value", %parameter%]
