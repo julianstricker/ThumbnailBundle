@@ -16,7 +16,7 @@
         "symfony/framework-bundle": "~2.1"
     },
     "suggest": {
-        "apc": "for caching thumbnails in APC-Cache"
+        "ext-apc": "To cache generated Thumbnails using APC"
     },
     "autoload" : {
         "psr-0" : {
