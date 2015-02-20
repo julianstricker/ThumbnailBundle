@@ -46,7 +46,6 @@ class ThumbnailController extends Controller {
             $info = getimagesize($imgname);
             $ctime = filectime($imgname);
         }
-        $expires = 1 * 24 * 60 * 60;
         $cachename = md5($imgname . $maxx . $maxy . $mode . $ctime);
         $fromcache = $this->getImageFromCache($cachename, $ctime);
         if ($fromcache) { //ist bereits im cache:
@@ -99,6 +98,39 @@ class ThumbnailController extends Controller {
     private function getImage($oimage, $info, $mode, $maxx, $maxy) {
         $ogrx = $info[0];
         $ogry = $info[1];
+        $imagesizes=$this->getNewimagesizes($info, $mode, $maxx, $maxy,$ogrx,$ogry);
+        $ngrx=$imagesizes['ngrx'];
+        $ngry=$imagesizes['ngry'];
+        $maxx=$imagesizes['maxx'];
+        $maxy=$imagesizes['maxy'];
+        if ($info[2] == 2 || $info[2] == 3 || $info[0] == 6) { //PNG, JPG
+            if ($mode == 'normal' || $mode == 'max') {
+                $image = imagecreatetruecolor($ngrx, $ngry);
+            } else {
+                $image = imagecreatetruecolor($maxx, $maxy);
+            }
+        } else { //GIF
+            if ($mode == 'normal' || $mode == 'max') {
+                $image = imagecreate($ngrx, $ngry);
+            } else {
+                $image = imagecreate($maxx, $maxy);
+            }
+        }
+        if ($info[2] == 3) { //PNG
+            imagealphablending($image, false);
+            imagesavealpha($image, true);
+        }
+        if ($mode == 'normal' || $mode == 'max') {
+            imagecopyresampled($image, $oimage, 0, 0, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
+        } else if ($mode == 'crop') {
+            imagecopyresampled($image, $oimage, -($ngrx - $maxx) / 2, -($ngry - $maxy) / 2, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
+        } else if ($mode == 'stretch') {
+            imagecopyresampled($image, $oimage, 0, 0, 0, 0, $maxx, $maxy, $ogrx, $ogry);
+        }
+        return $image;
+    }
+    
+    private function getNewimagesizes($info, $mode, $maxx, $maxy,$ogrx,$ogry){
         if ($mode == 'max') {
             $ngrx = $ogrx;
             $ngry = $ogry;
@@ -131,31 +163,12 @@ class ThumbnailController extends Controller {
                 }
             }
         }
-        if ($info[2] == 2 || $info[2] == 3 || $info[0] == 6) { //PNG, JPG
-            if ($mode == 'normal' || $mode == 'max') {
-                $image = imagecreatetruecolor($ngrx, $ngry);
-            } else {
-                $image = imagecreatetruecolor($maxx, $maxy);
-            }
-        } else { //GIF
-            if ($mode == 'normal' || $mode == 'max') {
-                $image = imagecreate($ngrx, $ngry);
-            } else {
-                $image = imagecreate($maxx, $maxy);
-            }
-        }
-        if ($info[2] == 3) { //PNG
-            imagealphablending($image, false);
-            imagesavealpha($image, true);
-        }
-        if ($mode == 'normal' || $mode == 'max') {
-            imagecopyresampled($image, $oimage, 0, 0, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
-        } else if ($mode == 'crop') {
-            imagecopyresampled($image, $oimage, -($ngrx - $maxx) / 2, -($ngry - $maxy) / 2, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
-        } else if ($mode == 'stretch') {
-            imagecopyresampled($image, $oimage, 0, 0, 0, 0, $maxx, $maxy, $ogrx, $ogry);
-        }
-        return $image;
+        return Array(
+            'ngrx'=>$ngrx,
+            'ngry'=>$ngry,
+            'maxx'=>$maxx,
+            'maxy'=>$maxy
+        );
     }
 
     private function getOimage($imgname, $info) {
