@@ -126,9 +126,6 @@ class ThumbnailController extends Controller {
             if ($info[2] == 3) { //PNG
                 imagealphablending($image, false);
                 imagesavealpha($image, true);
-                $farbe_body = imagecolorallocate($image, 0, 0, 0);
-            } else if ($info[2] == 1) { //GIF
-                $farbe_body = imagecolorallocate($image, 255, 255, 255);
             }
             if ($mode == 'normal' || $mode == 'max') {
                 imagecopyresampled($image, $oimage, 0, 0, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
