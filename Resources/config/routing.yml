@@ -1,0 +1,3 @@
+ju_st_thumbnail_homepage:
+    path:     /hello/{name}
+    defaults: { _controller: JuStThumbnailBundle:Default:index }
