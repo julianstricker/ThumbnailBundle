@@ -15,25 +15,23 @@ class ThumbnailController extends Controller {
             $logger = $this->get('logger');
             $logger->warning('The JustThumbnailBundle needs to have gd.jpeg_ignore_warning set to "1". Please set gd.jpeg_ignore_warning to false in your php.ini, and restart your webserver.');
         }
-        
+
         $img = $request->get('img', null);
         $maxx = $request->get('maxx', '');
         $maxy = $request->get('maxy', '');
         $mode = $request->get('mode', 'normal');
         $placeholder = $request->get('placeholder', '');
-        $response=$this->generateResponseForImage($img,$maxx,$maxy,$mode,$placeholder);
+        $response = $this->generateResponseForImage($img, $maxx, $maxy, $mode, $placeholder);
         return $response;
     }
-    
-    private function generateResponseForImage($img,$maxx,$maxy,$mode,$placeholderparam){
-        
-        $imagesrootdir =  $this->container->hasParameter('just_thumbnailbundle.imagesrootdir') ? $this->container->getParameter('just_thumbnailbundle.imagesrootdir') : $this->container->getParameter('kernel.root_dir') . '/../web/';
+
+    private function generateResponseForImage($img, $maxx, $maxy, $mode, $placeholderparam) {
+        $imagesrootdir = $this->container->hasParameter('just_thumbnailbundle.imagesrootdir') ? $this->container->getParameter('just_thumbnailbundle.imagesrootdir') : $this->container->getParameter('kernel.root_dir') . '/../web/';
         $placeholder = $this->container->hasParameter('just_thumbnailbundle.placeholder') ? $this->container->getParameter('just_thumbnailbundle.placeholder') : null;
-        $placeholder = $placeholderparam!='' ? $placeholderparam : $placeholder;
-        
-        $imgname = $imagesrootdir . ltrim($img,'/\\');
+        $placeholder = $placeholderparam != '' ? $placeholderparam : $placeholder;
+        $imgname = $imagesrootdir . ltrim($img, '/\\');
         if (!is_file($imgname) || !is_readable($imgname)) {
-            if (is_null($placeholder)){
+            if (is_null($placeholder)) {
                 throw new NotFoundHttpException("Image not found");
             }
             $imgname = $placeholder;
@@ -41,7 +39,7 @@ class ThumbnailController extends Controller {
         $info = getimagesize($imgname);
         $ctime = filectime($imgname);
         if (!$info) {
-            if (is_null($placeholder)){
+            if (is_null($placeholder)) {
                 throw new NotFoundHttpException("Image not found");
             }
             $imgname = $placeholder;
@@ -50,6 +48,145 @@ class ThumbnailController extends Controller {
         }
         $expires = 1 * 24 * 60 * 60;
         $cachename = md5($imgname . $maxx . $maxy . $mode . $ctime);
+        $fromcache = $this->getImageFromCache($cachename, $ctime);
+        if ($fromcache) { //ist bereits im cache:
+            return $fromcache;
+        } else { //thumbnail erstellen:   
+            $oimage = $this->getOimage($imgname, $info);
+            $image = $this->getImage($oimage, $info, $mode, $maxx, $maxy);
+            $response = $this->createResponseFromImage($image, $info, $cachename, $ctime);
+            imagedestroy($image);
+            imagedestroy($oimage);
+            return $response;
+        }
+    }
+
+    private function createResponseFromImage($image, $info, $cachename, $ctime) {
+        ob_start(); // start a new output buffer
+        if ($info[2] == 1) { //Original ist ein GIF
+            imagegif($image, NULL);
+        } else if ($info[2] == 2) { //Original ist ein JPG
+            imageinterlace($image, 1);
+            imagejpeg($image, NULL, 100);
+        } else if ($info[2] == 3) { //Original ist ein PNG
+            imagepng($image, NULL);
+        } else if ($info[2] == 6) { //Original ist ein BMP
+            imageinterlace($image, 1);
+            imagejpeg($image, NULL, 100);
+        }
+        $ImageData = ob_get_contents();
+        ob_end_clean(); // stop this output buffer
+        $this->get('cache')->save('JustThumbnailBundle' . $cachename, serialize($ImageData));
+        $response = new Response($ImageData);
+        if ($info[2] == 1) { //Original ist ein GIF
+            $response->headers->set('Content-Type', 'image/gif');
+        } else if ($info[2] == 2) { //Original ist ein JPG
+            $response->headers->set('Content-Type', 'image/jpeg');
+        } else if ($info[2] == 3) { //Original ist ein PNG
+            $response->headers->set('Content-Type', 'image/png');
+        } else if ($info[2] == 6) { //Original ist ein BMP
+            $response->headers->set('Content-Type', 'image/jpeg');
+        }
+        $expires = 1 * 24 * 60 * 60;
+        $response->headers->set('Content-Length', strlen($ImageData));
+        $response->headers->set('Pragma', 'public');
+        $response->headers->set('Last-Modified', gmdate('D, d M Y H:i:s', $ctime) . ' GMT');
+        $response->headers->set('Cache-Control', 'maxage=' . $expires);
+        $response->headers->set('Expires', gmdate('D, d M Y H:i:s', time() + $expires) . ' GMT');
+        return $response;
+    }
+
+    private function getImage($oimage, $info, $mode, $maxx, $maxy) {
+        $ogrx = $info[0];
+        $ogry = $info[1];
+        if ($mode == 'max') {
+            $ngrx = $ogrx;
+            $ngry = $ogry;
+            if ($maxx != '' && $ngrx > $maxx) {
+                $ngrx = $maxx;
+                $ngry = ($ogry / $ogrx) * $maxx;
+            }
+            if ($maxy != '' && $ngry > $maxy) {
+                $ngry = $maxy;
+                $ngrx = ($ogrx / $ogry) * $maxy;
+            }
+        } else {
+            if ($maxx == '') $maxx = ($ogrx / $ogry) * $maxy;
+            if ($maxy == '') $maxy = ($ogry / $ogrx) * $maxx;
+            if ($mode == 'crop') {
+                if ($ogrx / $maxx > $ogry / $maxy) { //Breitformat
+                    $ngry = $maxy;
+                    $ngrx = ( $ogrx * $maxy ) / $ogry;
+                } else { //Hochformat
+                    $ngrx = $maxx;
+                    $ngry = ( $ogry * $maxx ) / $ogrx;
+                }
+            } else {
+                if ($ogrx / $maxx > $ogry / $maxy) { //Breitformat
+                    $ngrx = $maxx;
+                    $ngry = ( $ogry * $maxx ) / $ogrx;
+                } else { //Hochformat
+                    $ngry = $maxy;
+                    $ngrx = ( $ogrx * $maxy ) / $ogry;
+                }
+            }
+        }
+        if ($info[2] == 2 || $info[2] == 3 || $info[0] == 6) { //PNG, JPG
+            if ($mode == 'normal' || $mode == 'max') {
+                $image = imagecreatetruecolor($ngrx, $ngry);
+            } else {
+                $image = imagecreatetruecolor($maxx, $maxy);
+            }
+        } else { //GIF
+            if ($mode == 'normal' || $mode == 'max') {
+                $image = imagecreate($ngrx, $ngry);
+            } else {
+                $image = imagecreate($maxx, $maxy);
+            }
+        }
+        if ($info[2] == 3) { //PNG
+            imagealphablending($image, false);
+            imagesavealpha($image, true);
+        }
+        if ($mode == 'normal' || $mode == 'max') {
+            imagecopyresampled($image, $oimage, 0, 0, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
+        } else if ($mode == 'crop') {
+            imagecopyresampled($image, $oimage, -($ngrx - $maxx) / 2, -($ngry - $maxy) / 2, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
+        } else if ($mode == 'stretch') {
+            imagecopyresampled($image, $oimage, 0, 0, 0, 0, $maxx, $maxy, $ogrx, $ogry);
+        }
+        return $image;
+    }
+
+    private function getOimage($imgname, $info) {
+        if ($info[2] == 1) { //Original ist ein GIF
+            try {
+                $oimage = imagecreatefromgif($imgname);
+            } catch (\Exception $e) {
+                throw new HttpException(500, 'Caught exception: ', $e->getMessage());
+            }
+        } else if ($info[2] == 2) { //Original ist ein JPG
+            try {
+                $oimage = imagecreatefromjpeg($imgname);
+            } catch (\Exception $e) {
+                throw new HttpException(500, 'Caught exception: ', $e->getMessage());
+            }
+        } else if ($info[2] == 3) { //Original ist ein PNG
+            try {
+                $oimage = imagecreatefrompng($imgname);
+            } catch (\Exception $e) {
+                throw new HttpException(500, 'Caught exception: ', $e->getMessage());
+            }
+        } else if ($info[2] == 6) { //Original ist ein BMP
+            $oimage = $this->imagecreatefrombmp($imgname);
+        } else {
+            throw new HttpException(500, "Error reading image");
+        }
+        return $oimage;
+    }
+
+    private function getImageFromCache($cachename, $ctime) {
+        $expires = 1 * 24 * 60 * 60;
         if ($cachefile = $this->get('cache')->fetch('JustThumbnailBundle' . $cachename)) {
             //ist bereits im cache:
             $uscachefile = unserialize($cachefile);
@@ -61,134 +198,8 @@ class ThumbnailController extends Controller {
             $response->headers->set('Cache-Control', 'maxage=' . $expires);
             $response->headers->set('Expires', gmdate('D, d M Y H:i:s', time() + $expires) . ' GMT');
             return $response;
-        } else {
-            //thumbnail erstellen:      
-            if ($info[2] == 1) { //Original ist ein GIF
-                try {
-                    $oimage = imagecreatefromgif($imgname);
-                } catch (Exception $e) {
-                    throw new HttpException(500, 'Caught exception: ',  $e->getMessage());
-                }
-            } else if ($info[2] == 2) { //Original ist ein JPG
-                try {
-                    $oimage = imagecreatefromjpeg($imgname);
-                } catch (Exception $e) {
-                    throw new HttpException(500, 'Caught exception: ',  $e->getMessage());
-                }
-            } else if ($info[2] == 3) { //Original ist ein PNG
-                try {
-                    $oimage = imagecreatefrompng($imgname);
-                } catch (Exception $e) {
-                    throw new HttpException(500, 'Caught exception: ',  $e->getMessage());
-                }
-            } else if ($info[2] == 6) { //Original ist ein BMP
-                $oimage = $this->imagecreatefrombmp($imgname);
-            } else {
-                throw new HttpException(500, "Error reading image");
-            }
-            $ogrx = $info[0];
-            $ogry = $info[1];
-
-
-            if ($mode == 'max') {
-                $ngrx = $ogrx;
-                $ngry = $ogry;
-                if ($maxx != '' && $ngrx > $maxx) {
-                    $ngrx = $maxx;
-                    $ngry = ($ogry / $ogrx) * $maxx;
-                }
-                if ($maxy != '' && $ngry > $maxy) {
-                    $ngry = $maxy;
-                    $ngrx = ($ogrx / $ogry) * $maxy;
-                }
-            } else {
-                if ($maxx == '') $maxx = ($ogrx / $ogry) * $maxy;
-                if ($maxy == '') $maxy = ($ogry / $ogrx) * $maxx;
-                if ($mode == 'crop') {
-                    if ($ogrx / $maxx > $ogry / $maxy) { //Breitformat
-                        $ngry = $maxy;
-                        $ngrx = ( $ogrx * $maxy ) / $ogry;
-                    } else { //Hochformat
-                        $ngrx = $maxx;
-                        $ngry = ( $ogry * $maxx ) / $ogrx;
-                    }
-                } else {
-                    if ($ogrx / $maxx > $ogry / $maxy) { //Breitformat
-                        $ngrx = $maxx;
-                        $ngry = ( $ogry * $maxx ) / $ogrx;
-                    } else { //Hochformat
-                        $ngry = $maxy;
-                        $ngrx = ( $ogrx * $maxy ) / $ogry;
-                    }
-                }
-            }
-            if ($info[2] == 2 || $info[2] == 3 || $info[0] == 6) { //PNG, JPG
-                if ($mode == 'normal' || $mode == 'max') {
-                    $image = imagecreatetruecolor($ngrx, $ngry);
-                } else {
-                    $image = imagecreatetruecolor($maxx, $maxy);
-                }
-            } else { //GIF
-                if ($mode == 'normal' || $mode == 'max') {
-                    $image = imagecreate($ngrx, $ngry);
-                } else {
-                    $image = imagecreate($maxx, $maxy);
-                }
-            }
-            if ($info[2] == 3) { //PNG
-                imagealphablending($image, false);
-                imagesavealpha($image, true);
-            }
-            if ($mode == 'normal' || $mode == 'max') {
-                imagecopyresampled($image, $oimage, 0, 0, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
-            } else if ($mode == 'crop') {
-                imagecopyresampled($image, $oimage, -($ngrx - $maxx) / 2, -($ngry - $maxy) / 2, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
-            } else if ($mode == 'stretch') {
-                imagecopyresampled($image, $oimage, 0, 0, 0, 0, $maxx, $maxy, $ogrx, $ogry);
-            }
-
-
-            ob_start(); // start a new output buffer
-
-
-            if ($info[2] == 1) { //Original ist ein GIF
-                imagegif($image, NULL);
-            } else if ($info[2] == 2) { //Original ist ein JPG
-                imageinterlace($image, 1);
-                imagejpeg($image, NULL, 100);
-            } else if ($info[2] == 3) { //Original ist ein PNG
-                imagepng($image, NULL);
-            } else if ($info[2] == 6) { //Original ist ein BMP
-                imageinterlace($image, 1);
-                imagejpeg($image, NULL, 100);
-            }
-
-            $ImageData = ob_get_contents();
-            ob_end_clean(); // stop this output buffer
-            $this->get('cache')->save('JustThumbnailBundle' . $cachename, serialize($ImageData));
-
-            $response = new Response($ImageData);
-
-            if ($info[2] == 1) { //Original ist ein GIF
-                $response->headers->set('Content-Type', 'image/gif');
-            } else if ($info[2] == 2) { //Original ist ein JPG
-                $response->headers->set('Content-Type', 'image/jpeg');
-            } else if ($info[2] == 3) { //Original ist ein PNG
-                $response->headers->set('Content-Type', 'image/png');
-            } else if ($info[2] == 6) { //Original ist ein BMP
-                $response->headers->set('Content-Type', 'image/jpeg');
-            }
-
-            $response->headers->set('Content-Length', strlen($ImageData));
-            $response->headers->set('Pragma', 'public');
-            $response->headers->set('Last-Modified', gmdate('D, d M Y H:i:s', $ctime) . ' GMT');
-            $response->headers->set('Cache-Control', 'maxage=' . $expires);
-            $response->headers->set('Expires', gmdate('D, d M Y H:i:s', time() + $expires) . ' GMT');
-
-            imagedestroy($image);
-            imagedestroy($oimage);
-            return $response;
         }
+        return false;
     }
 
     private function imagecreatefrombmp($p_sFile) {
@@ -257,4 +268,5 @@ class ThumbnailController extends Controller {
         //    Return image-object 
         return $image;
     }
+
 }
