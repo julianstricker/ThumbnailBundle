@@ -23,7 +23,7 @@ class ThumbnailController extends Controller {
         $imgname = $imagesrootdir . ltrim($img,'/\\');
         if (!is_file($imgname) || !is_readable($imgname)) {
             if (is_null($placeholder)){
-                throw new Symfony\Component\HttpKernel\Exception\NotFoundHttpException("Image not found");
+                throw new NotFoundHttpException("Image not found");
             }
             $imgname = $placeholder;
         }
@@ -31,7 +31,7 @@ class ThumbnailController extends Controller {
         $ctime = filectime($imgname);
         if (!$info) {
             if (is_null($placeholder)){
-                throw new Symfony\Component\HttpKernel\Exception\NotFoundHttpException("Image not found");
+                throw new NotFoundHttpException("Image not found");
             }
             $imgname = $placeholder;
             $info = getimagesize($imgname);
@@ -62,7 +62,7 @@ class ThumbnailController extends Controller {
                 $oimage = $this->imagecreatefrombmp($imgname);
             } else {
 //                print_r($info);
-                throw new Symfony\Component\HttpKernel\Exception\HttpException(500, "Error reading image");
+                throw new HttpException(500, "Error reading image");
                 //throw $this->createNotFoundException('The image does not exist or is not readable');
             }
             $ogrx = $info[0];
