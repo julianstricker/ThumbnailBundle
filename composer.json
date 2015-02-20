@@ -20,10 +20,10 @@
     },
     "autoload" : {
         "psr-0" : {
-            "Just\\ThumbnailBundle" : ""
+            "JuSt\\ThumbnailBundle" : ""
         }
     },
-    "target-dir" : "Just/ThumbnailBundle",
+    "target-dir" : "JuSt/ThumbnailBundle",
     
     "extra" : {
         "branch-alias" : {
