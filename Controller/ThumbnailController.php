@@ -64,11 +64,23 @@ class ThumbnailController extends Controller {
         } else {
             //thumbnail erstellen:      
             if ($info[2] == 1) { //Original ist ein GIF
-                $oimage = @imagecreatefromgif($imgname);
+                try {
+                    $oimage = imagecreatefromgif($imgname);
+                } catch (Exception $e) {
+                    throw new HttpException(500, 'Caught exception: ',  $e->getMessage());
+                }
             } else if ($info[2] == 2) { //Original ist ein JPG
-                $oimage = @imagecreatefromjpeg($imgname);
+                try {
+                    $oimage = imagecreatefromjpeg($imgname);
+                } catch (Exception $e) {
+                    throw new HttpException(500, 'Caught exception: ',  $e->getMessage());
+                }
             } else if ($info[2] == 3) { //Original ist ein PNG
-                $oimage = @imagecreatefrompng($imgname);
+                try {
+                    $oimage = imagecreatefrompng($imgname);
+                } catch (Exception $e) {
+                    throw new HttpException(500, 'Caught exception: ',  $e->getMessage());
+                }
             } else if ($info[2] == 6) { //Original ist ein BMP
                 $oimage = $this->imagecreatefrombmp($imgname);
             } else {
