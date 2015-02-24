@@ -26,8 +26,6 @@ class ThumbnailController extends Controller {
     }
 
     private function generateResponseForImage($img, $maxx, $maxy, $mode, $placeholderparam) {
-        $config=$this->container->hasParameter('just_thumbnail') ? $this->container->getParameter('just_thumbnail') : Array();
-        dump($config);
         $imagesrootdir = $this->container->hasParameter('just_thumbnail.imagesrootdir') ? $this->container->getParameter('just_thumbnail.imagesrootdir') : $this->container->getParameter('kernel.root_dir') . '/../web/';
         $placeholder = $this->container->hasParameter('just_thumbnail.placeholder') ? $this->container->getParameter('just_thumbnail.placeholder') : null;
         $placeholder = $placeholderparam != '' ? $placeholderparam : $placeholder;
