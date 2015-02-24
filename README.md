@@ -124,5 +124,5 @@ max: Sets the image to the maximum height or width, without changing the width/h
 "maxx" is the maximum width and "maxy" the maximun height of the generated thumbnail.
 
 #### Placeholder
-You can overwrite the placeholder-file-config by adding a "placeholder"-Parameter to the url. Example: www.yourdomain.tld/thumbnails/stretch/800x225/hotel/imagename?placeholder=new_placeholder_image.jpg
+You can overwrite the placeholder-file-config by adding a "placeholder"-Parameter to the url. Example: www.yourdomain.tld/thumbnails/stretch/800x225/path/to/image?placeholder=new_placeholder_image.jpg
 
