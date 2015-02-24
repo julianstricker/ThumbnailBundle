@@ -61,6 +61,7 @@ class ThumbnailController extends Controller {
     }
 
     private function createResponseFromImage($image, $info, $cachename, $ctime) {
+        $expires = $this->container->hasParameter('just_thumbnail.expiretime') ? $this->container->getParameter('just_thumbnail.expiretime') : 1 * 24 * 60 * 60;
         ob_start(); // start a new output buffer
         if ($info[2] == 1) { //Original ist ein GIF
             imagegif($image, NULL);
@@ -86,12 +87,11 @@ class ThumbnailController extends Controller {
         } else if ($info[2] == 6) { //Original ist ein BMP
             $response->headers->set('Content-Type', 'image/jpeg');
         }
-        $expires = 1 * 24 * 60 * 60;
         $response->headers->set('Content-Length', strlen($ImageData));
         $response->headers->set('Pragma', 'public');
         $response->headers->set('Last-Modified', gmdate('D, d M Y H:i:s', $ctime) . ' GMT');
         $response->headers->set('Cache-Control', 'maxage=' . $expires);
-        $response->headers->set('Expires', gmdate('D, d M Y H:i:s', time() + $expires) . ' GMT');
+        $response->headers->set('Expires', gmdate('D, d M Y H:i:s', $ctime + $expires) . ' GMT');
         return $response;
     }
 
@@ -199,7 +199,7 @@ class ThumbnailController extends Controller {
     }
 
     private function getImageFromCache($cachename, $ctime) {
-        $expires = 1 * 24 * 60 * 60;
+        $expires = $this->container->hasParameter('just_thumbnail.expiretime') ? $this->container->getParameter('just_thumbnail.expiretime') : 1 * 24 * 60 * 60;
         if ($cachefile = $this->get('cache')->fetch('JustThumbnailBundle' . $cachename)) {
             //ist bereits im cache:
             $uscachefile = unserialize($cachefile);
