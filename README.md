@@ -126,3 +126,12 @@ max: Sets the image to the maximum height or width, without changing the width/h
 #### Placeholder
 You can overwrite the placeholder-file-config by adding a "placeholder"-Parameter to the url. Example: www.yourdomain.tld/thumbnails/stretch/800x225/path/to/image?placeholder=new_placeholder_image.jpg
 
+#### Twig Helper
+You can use the twig helper to generate the URL :
+``` 
+{{thumbnail({'img':'a_image','maxx':320,'maxy':240,'mode':'stretch'})}}
+``` 
+will generate something like:
+``` 
+/thumbnails/stretch/300x240/hotel/a_image
+``` 

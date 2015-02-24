@@ -1,9 +1,3 @@
-just_thumbnail_homepage:
-    path:     /hello/{name}
-    defaults: { _controller: JustThumbnailBundle:Default:index }
-
-
-
 just_thumbnail_extension:
     pattern:  /thumbnails/{mode}/{maxx}x{maxy}/{img}.{extension}
     defaults: { _controller: JustThumbnailBundle:Thumbnail:thumbnail }
