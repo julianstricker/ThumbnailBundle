@@ -1,6 +1,6 @@
 <?php
 
-namespace JuSt\ThumbnailBundle\DependencyInjection;
+namespace Just\ThumbnailBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
