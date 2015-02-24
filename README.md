@@ -5,7 +5,7 @@ Just/ThumbnailBundle - Symfony2 Bundle for on-the-fly Thumbnails Creation
 Overview
 ========
 
-The bundle creates Thumbnails on the fly using GD for the Symfony2 framework. It uses the Symfony cache system to cache the thumbnails.
+This is a bundle for the Symfony2 framework that creates Thumbnails on first demand. The thumbnails then are stored using the Symfony cache system.
 It creates a thumbnail of a image in the given size and stores it in cache for the next calls, until the image changes.
 
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/f97fef15-6eb9-45e2-9973-5948514a4864/big.png)](https://insight.sensiolabs.com/projects/f97fef15-6eb9-45e2-9973-5948514a4864)
@@ -19,53 +19,81 @@ This bundle is released under the [MIT license](Resources/meta/LICENSE)
 Installation
 ============
 
-1) Add the following line to your composer.json require block:
-    "just/thumbnailbundle": "dev-master"
+## Step1: Using Composer
 
-    The standard symfony 2.2 composer.json file has a branch alias that interferes with installing this bundle.  You can work around by removing the lines
+Add the following line to your composer.json require block:
+
+```js
+// composer.json
+{
+    // ...
+    require: {
+        // ...
+        "just/thumbnailbundle": "dev-master"
+    }
+}
 ```
+    
+    The standard symfony 2.2 composer.json file has a branch alias that interferes with installing this bundle.  You can work around by removing the lines
+```js
  "branch-alias": {
             "dev-master": "2.2-dev"
         }
 ```
 
-2) Modify your AppKernel with the following line:
+Then, you can install the new dependencies by running Composer's ``update``
+command from the directory where your ``composer.json`` file is located:
 
+```bash
+$ php composer.phar update
+```
+
+### Step 2: Register the Bundle
+
+Modify your AppKernel with the following line:
+```php
+<?php
+// in AppKernel::registerBundles()
+$bundles = array(
+    // ...
     new Just\ThumbnailBundle\JustThumbnailBundle(),
+    // ...
+);
+```
 
-3) Execute composer install
+### Step 3: Configure the bundle
 
-Using the plugin
-================
+``` yaml
+# app/config/config.yml
 
-Enable one or more modules in your settings.yml  * jsThumbnail
+just_thumbnailbundle:
+    imagesrootdir: "/path/to/the/images/root/dir/on/server/"
+    placeholder: "/path/to/a/placeholder/image.jpg"
+```
+Both parameters are optional. The default imagesrootdir is the Symfony web-directory. 
+The placeholder-Image will be showen if the original image is not readable or not found. If the placeholder parameter is not set then the Controller will return a "404 Not found" message.
 
 
-In your template call something like this:
-{{{
+**Note:**
+> The JustThumbnailBundle needs to have gd.jpeg_ignore_warning set to "1". Set gd.jpeg_ignore_warning to "1" in your php.ini, and restart your webserver.
 
-&lt;?php echo thumbnail_tag(&#039;uploads/pictures/image.jpg&#039;,100, 80, &#039;crop&#039; array(&#039;style&#039; =&gt; &#039;border: 1px solid #ff0000&#039;)) ?&gt; 
-//&#039;/path/to/image.jpg&#039;,maximum width, maximum height, params
 
-}}}
+### Step 4: Import JustThumbnailBundle routing file
 
-The Parameter &quot;mode&quot; can be &quot;normal&quot;, &quot;crop&quot; or &quot;stretch&quot;
-you can call the Thumbnail directly:
-www.yourhost.com/yourapp.php/jsThumbnail/thumbnail?img=uploads/pictures/image.jpg&amp;maxx=100&amp;maxy=80&amp;mode=crop
+In YAML:
 
-{{{
+``` yaml
+# app/config/routing.yml
+just_thumbnail_bundle:
+    resource: "@JustThumbnailBundle/Resources/config/routing.yml"
+```
 
-&lt;?php use_helper(&#039;Thumbnail&#039;) ?&gt;
+Or if you prefer XML:
 
-&lt;?php echo thumbnail_tag(&#039;uploads/pictures/offer/54fbcc52d9ec1af3decd50aeed9f5517.jpg&#039;,100, 80, &#039;stretch&#039; array(&#039;style&#039; =&gt; &#039;border: 1px solid #ff0000&#039;)) ?&gt;
+``` xml
+<!-- app/config/routing.xml -->
+<import resource="@JustThumbnailBundle/Resources/config/routing.yml"/>
+```
 
-}}}
 
-The Plugin automatically checks if the Original image was modificated.
-To delete the cached thumbnails call:
-{{{
-
-symfony cc
-
-}}}
 

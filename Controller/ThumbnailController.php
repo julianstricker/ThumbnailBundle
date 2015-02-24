@@ -13,7 +13,7 @@ class ThumbnailController extends Controller {
     public function thumbnailAction(Request $request) {
         if (1 !== ini_get('gd.jpeg_ignore_warning')) {
             $logger = $this->get('logger');
-            $logger->warning('The JustThumbnailBundle needs to have gd.jpeg_ignore_warning set to "1". Please set gd.jpeg_ignore_warning to false in your php.ini, and restart your webserver.');
+            $logger->warning('The JustThumbnailBundle needs to have gd.jpeg_ignore_warning set to "1". Please set gd.jpeg_ignore_warning to "1" in your php.ini, and restart your webserver.');
         }
 
         $img = $request->get('img', null);
@@ -26,8 +26,8 @@ class ThumbnailController extends Controller {
     }
 
     private function generateResponseForImage($img, $maxx, $maxy, $mode, $placeholderparam) {
-        $imagesrootdir = $this->container->hasParameter('just_thumbnailbundle.imagesrootdir') ? $this->container->getParameter('just_thumbnailbundle.imagesrootdir') : $this->container->getParameter('kernel.root_dir') . '/../web/';
-        $placeholder = $this->container->hasParameter('just_thumbnailbundle.placeholder') ? $this->container->getParameter('just_thumbnailbundle.placeholder') : null;
+        $imagesrootdir = $this->container->hasParameter('just_thumbnail.imagesrootdir') ? $this->container->getParameter('just_thumbnail.imagesrootdir') : $this->container->getParameter('kernel.root_dir') . '/../web/';
+        $placeholder = $this->container->hasParameter('just_thumbnail.placeholder') ? $this->container->getParameter('just_thumbnail.placeholder') : null;
         $placeholder = $placeholderparam != '' ? $placeholderparam : $placeholder;
         $imgname = $imagesrootdir . ltrim($img, '/\\');
         if (!is_file($imgname) || !is_readable($imgname)) {
