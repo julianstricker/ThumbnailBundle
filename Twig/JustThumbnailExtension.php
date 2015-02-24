@@ -55,3 +55,4 @@ class JustThumbnailExtension extends \Twig_Extension {
         return 'just_thumbnail_twig_extension';
     }
 }
+

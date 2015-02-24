@@ -135,3 +135,4 @@ will generate something like:
 ``` 
 /thumbnails/stretch/300x240/hotel/a_image
 ``` 
+
