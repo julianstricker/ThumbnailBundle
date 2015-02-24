@@ -23,7 +23,7 @@ class Configuration implements ConfigurationInterface {
             ->children()
                 ->variableNode('imagesrootdir')->end()
                 ->variableNode('placeholder')->end()
-                ->variableNode('expiretime')->end()
+                ->integerNode('expiretime')->end()
             ->end()
         ;
 
