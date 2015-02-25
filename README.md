@@ -136,3 +136,7 @@ will generate something like:
 /thumbnails/stretch/300x240/hotel/a_image
 ``` 
 
+[![knpbundles.com](http://knpbundles.com/julianstricker/ThumbnailBundle/badge)](http://knpbundles.com/julianstricker/ThumbnailBundle)
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/julianstricker/thumbnailbundle/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
