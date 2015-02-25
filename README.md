@@ -139,4 +139,3 @@ will generate something like:
 [![knpbundles.com](http://knpbundles.com/julianstricker/ThumbnailBundle/badge)](http://knpbundles.com/julianstricker/ThumbnailBundle)
 
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/julianstricker/thumbnailbundle/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
