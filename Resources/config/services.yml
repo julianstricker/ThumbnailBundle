@@ -7,5 +7,4 @@ services:
         arguments: [@router]
         tags:
             -  { name: twig.extension }
-            
-            
+
