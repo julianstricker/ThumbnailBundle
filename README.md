@@ -35,7 +35,7 @@ Add the following line to your composer.json require block:
 ```
     
 The standard symfony 2.2 composer.json file has a branch alias that interferes with installing this bundle.  You can work around by removing the lines
-
+ 
 ```js
  "branch-alias": {
             "dev-master": "2.2-dev"
