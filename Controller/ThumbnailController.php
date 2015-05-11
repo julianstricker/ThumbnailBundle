@@ -54,8 +54,8 @@ class ThumbnailController extends Controller {
             $oimage = $this->getOimage($imgname, $info);
             $image = $this->getImage($oimage, $info, $mode, $maxx, $maxy);
             $response = $this->createResponseFromImage($image, $info, $cachename, $ctime);
-            imagedestroy($image);
-            imagedestroy($oimage);
+            if($image) imagedestroy($image);
+            if($oimage) imagedestroy($oimage);
             return $response;
         }
     }
