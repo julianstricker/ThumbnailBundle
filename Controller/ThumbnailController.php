@@ -53,6 +53,7 @@ class ThumbnailController extends Controller {
         } else { //thumbnail erstellen:   
             $oimage = $this->getOimage($imgname, $info);
             $image = $this->getImage($oimage, $info, $mode, $maxx, $maxy);
+            if ($image===false) throw new NotFoundHttpException("Error reading image");
             $response = $this->createResponseFromImage($image, $info, $cachename, $ctime);
             if($image) imagedestroy($image);
             if($oimage) imagedestroy($oimage);
