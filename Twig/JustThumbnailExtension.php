@@ -22,7 +22,7 @@ class JustThumbnailExtension extends \Twig_Extension {
      */
     public function getFunctions() {
         return array(
-            'thumbnail' => new \Twig_SimpleFilter('thumbnail', array($this, 'thumbnail'))
+            'thumbnail' => new  \Twig_SimpleFilter('thumbnail', array($this, 'thumbnail'))
         );
     }
 
