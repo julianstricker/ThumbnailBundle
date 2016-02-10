@@ -22,7 +22,7 @@ class JustThumbnailExtension extends \Twig_Extension {
      */
     public function getFunctions() {
         return array(
-            'thumbnail' => new \Twig_Function_Method($this, 'thumbnail')
+            new \Twig_SimpleFunction('thumbnail', array($this, 'thumbnail'),array('is_safe' => array('html')))
         );
     }
 
