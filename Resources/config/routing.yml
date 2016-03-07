@@ -1,5 +1,5 @@
 just_thumbnail_extension:
-    pattern:  /thumbnails/{mode}/{maxx}x{maxy}/{img}.{extension}
+    path:  /thumbnails/{mode}/{maxx}x{maxy}/{img}.{extension}
     defaults: { _controller: JustThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
@@ -9,7 +9,7 @@ just_thumbnail_extension:
         extension: "[a-z]{0,4}"
 
 just_thumbnail_x_extension:
-    pattern:  /thumbnails/{mode}/{maxx}x/{img}.{extension}
+    path:  /thumbnails/{mode}/{maxx}x/{img}.{extension}
     defaults: { _controller: JustThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
@@ -18,7 +18,7 @@ just_thumbnail_x_extension:
         extension: "[a-z]{0,4}"
 
 just_thumbnail_y_extension:
-    pattern:  /thumbnails/{mode}/x{maxy}/{img}.{extension}
+    path:  /thumbnails/{mode}/x{maxy}/{img}.{extension}
     defaults: { _controller: JustThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
@@ -28,7 +28,7 @@ just_thumbnail_y_extension:
 
 #JS\ThumbnailBundle\Controller
 just_thumbnail:
-    pattern:  /thumbnails/{mode}/{maxx}x{maxy}/{img}
+    path:  /thumbnails/{mode}/{maxx}x{maxy}/{img}
     defaults: { _controller: JustThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
@@ -37,7 +37,7 @@ just_thumbnail:
         img: ".+"
 
 just_thumbnail_x:
-    pattern:  /thumbnails/{mode}/{maxx}x/{img}
+    path:  /thumbnails/{mode}/{maxx}x/{img}
     defaults: { _controller: JustThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
@@ -45,7 +45,7 @@ just_thumbnail_x:
         img: ".+"
 
 just_thumbnail_y:
-    pattern:  /thumbnails/{mode}/x{maxy}/{img}
+    path:  /thumbnails/{mode}/x{maxy}/{img}
     defaults: { _controller: JustThumbnailBundle:Thumbnail:thumbnail }
     requirements:
         #mode: ~
