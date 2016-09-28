@@ -1,18 +1,14 @@
 <?php
 
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 namespace Just\ThumbnailBundle\Twig;
+
+use Symfony\Bundle\FrameworkBundle\Routing\Router;
 
 class JustThumbnailExtension extends \Twig_Extension {
     
     protected $router;
 
-    public function __construct($router)
+    public function __construct(Router $router)
     {
         $this->router = $router;
     }

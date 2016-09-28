@@ -8,3 +8,6 @@ services:
         tags:
             -  { name: twig.extension }
 
+    just_thumbnail:
+            class:        Just\ThumbnailBundle\Services\ThumbnailService
+            arguments: [ %just_thumbnail%, %kernel.root_dir%, %services.cache% ]
