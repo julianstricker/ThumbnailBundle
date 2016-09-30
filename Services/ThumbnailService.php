@@ -56,7 +56,6 @@ class ThumbnailService
         }
         try{
             $info = getimagesize($imgname);
-            $ctime = filectime($imgname);
         }catch(\Exception $e){
             return $this->createErrorResponse(404, "Image and placeholder not found");
         }
@@ -66,11 +65,11 @@ class ThumbnailService
             $imgname = $placeholder;
             try{
                 $info = getimagesize($imgname);
-                $ctime = filectime($imgname);
             }catch(\Exception $e){
                 return $this->createErrorResponse(404, "Image not readable and placeholder not found");
             }
         }
+
         $cachename = md5($imgname .'_'. $maxxstring .'_'. $maxystring .'_'. $mode .'_'. $ctime);
         $maxx=$maxxstring=='' ? null : intval($maxxstring,10);
         $maxy=$maxxstring=='' ? null : intval($maxxstring,10);
@@ -89,7 +88,6 @@ class ThumbnailService
         if ($image) imagedestroy($image);
         if ($oimage) imagedestroy($oimage);
         return $response;
-
     }
 
     /**
