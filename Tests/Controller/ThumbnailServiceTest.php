@@ -81,6 +81,11 @@ class ThumbnailServiceTest extends KernelTestCase
         $this->assertTrue($response->headers->contains('Content-Type','image/jpeg'));
         $this->assertTrue($response->getStatusCode()==200);
     }
+    public function testMaxModeJpeg(){
+        $response = $this->thumbnailservice->generateResponseForImage('cats.jpeg', 1000, 50, 'max', '');//$this->placeholder);
+        $this->assertTrue($response->headers->contains('Content-Type','image/jpeg'));
+        $this->assertTrue($response->getStatusCode()==200);
+    }
 
 
 }
