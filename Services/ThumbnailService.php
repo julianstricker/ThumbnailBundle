@@ -73,9 +73,8 @@ class ThumbnailService
         $cachename = md5($imgname .'_'. $maxxstring .'_'. $maxystring .'_'. $mode .'_'. $ctime);
         $maxx=$maxxstring=='' ? null : intval($maxxstring,10);
         $maxy=$maxxstring=='' ? null : intval($maxxstring,10);
-        $fromcache = $this->getResponseForCachedImage($cachename, $ctime);
         //ist bereits im cache?
-        if ($fromcache) return $fromcache;
+        if ($this->imageIsCached($cachename)) return  $this->getResponseForCachedImage($cachename, $ctime, $info);
          //thumbnail erstellen:
         try {
             $oimage = $this->getOriginalImage($imgname, $info);
@@ -129,7 +128,7 @@ class ThumbnailService
         }
         $ImageData = ob_get_contents();
         ob_end_clean(); // stop this output buffer
-        $this->cachingService->save('JustThumbnailBundle' . $cachename, serialize($ImageData));
+        $this->cachingService->save('JustThumbnailBundle' . $cachename, serialize($ImageData),$this->expiretime);
         $response = new Response($ImageData);
         if ($info[2] == 1) { //Original ist ein GIF
             $response->headers->set('Content-Type', 'image/gif');
@@ -279,18 +278,39 @@ class ThumbnailService
     }
 
     /**
-     * @param $cachename
+     * Check if image exists in cache
+     *
+     * @param string $cachename
+     * @return bool
+     */
+    private function imageIsCached($cachename){
+        return $this->cachingService->contains('JustThumbnailBundle' . $cachename);
+    }
+
+    /**
+     * Get response for cached image
+     *
+     * @param string $cachename
      * @param $ctime
+     * @param array $info
      * @return bool|Response
      */
-    private function getResponseForCachedImage($cachename, $ctime)
+    private function getResponseForCachedImage($cachename, $ctime, $info)
     {
         $expires = isset($this->expiretime) ? $this->expiretime : 1 * 24 * 60 * 60;
         if ($cachefile = $this->cachingService->fetch('JustThumbnailBundle' . $cachename)) {
             //ist bereits im cache:
             $uscachefile = unserialize($cachefile);
             $response = new Response($uscachefile);
-            $response->headers->set('Content-Type', 'image/jpeg');
+            if ($info[2] == 1) { //Original ist ein GIF
+                $response->headers->set('Content-Type', 'image/gif');
+            } else if ($info[2] == 2) { //Original ist ein JPG
+                $response->headers->set('Content-Type', 'image/jpeg');
+            } else if ($info[2] == 3) { //Original ist ein PNG
+                $response->headers->set('Content-Type', 'image/png');
+            } else if ($info[2] == 6) { //Original ist ein BMP
+                $response->headers->set('Content-Type', 'image/jpeg');
+            }
             $response->headers->set('Content-Length', strlen($uscachefile));
             $response->headers->set('Pragma', 'public');
             $response->headers->set('Last-Modified', gmdate('D, d M Y H:i:s', $ctime) . ' GMT');
