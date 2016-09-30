@@ -1,63 +1,80 @@
 <?php
+/**
+ * This file is part of the "JustThumbnailBundle" project.
+ * Copyright (c) 2016 Julian Stricker.
+ * For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
+ */
 
 namespace Just\ThumbnailBundle\Services;
 
 use Doctrine\Common\Cache\CacheProvider;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 
 class ThumbnailService
 {
 
-    private $config;
+    private $imagesrootdir;
+    private $placeholder;
+    private $expiretime;
     private $root_dir;
     private $cachingService;
 
     /**
      * ThumbnailService constructor.
-     * @param array $config
+     * @param string $imagesrootdir
+     * @param string $placeholder
+     * @param int $expiretime
      * @param string $root_dir
      * @param CacheProvider $cachingService
      */
-    public function __construct($config, $root_dir, CacheProvider $cachingService)
+    public function __construct($imagesrootdir, $placeholder, $expiretime, $root_dir, CacheProvider $cachingService)
     {
-        $this->config = $config;
+        $this->imagesrootdir = $imagesrootdir;
+        $this->placeholder = $placeholder;
+        $this->expiretime = $expiretime;
         $this->root_dir = $root_dir;
         $this->cachingService = $cachingService;
     }
-
 
     /**
      * @param string $img
      * @param string $maxxstring
      * @param string $maxystring
-     * @param $mode
-     * @param $placeholderparam
+     * @param string $mode
+     * @param string $placeholderparam
      * @return Response
      */
     public function generateResponseForImage($img, $maxxstring, $maxystring, $mode, $placeholderparam)
     {
-        $imagesrootdir = isset($this->config['imagesrootdir']) ? $this->config['imagesrootdir'] : $this->root_dir . '/../web/';
-        $placeholder = isset($this->config['placeholder']) ? $this->config['placeholder'] : null;
+        $imagesrootdir = isset($this->imagesrootdir) ? $this->imagesrootdir : $this->root_dir . '/../web/';
+        $placeholder = isset($this->placeholder) ? $this->placeholder : null;
         $placeholder = $placeholderparam != '' ? $placeholderparam : $placeholder;
         $imgname = $imagesrootdir . ltrim($img, '/\\');
         if (!is_file($imgname) || !is_readable($imgname)) {
             if (is_null($placeholder)) {
-                throw new NotFoundHttpException("Image not found");
+                return $this->createErrorResponse(404, "Image not found");
             }
             $imgname = $placeholder;
         }
-        $info = getimagesize($imgname);
-        $ctime = filectime($imgname);
-        if (!$info) {
-            if (is_null($placeholder)) {
-                throw new NotFoundHttpException("Image not found");
-            }
-            $imgname = $placeholder;
+        try{
             $info = getimagesize($imgname);
             $ctime = filectime($imgname);
+        }catch(\Exception $e){
+            return $this->createErrorResponse(404, "Image and placeholder not found");
+        }
+
+        if (!$info) {
+            if (is_null($placeholder)) {
+                return $this->createErrorResponse(404, "Image not readable");
+            }
+            $imgname = $placeholder;
+            try{
+                $info = getimagesize($imgname);
+                $ctime = filectime($imgname);
+            }catch(\Exception $e){
+                return $this->createErrorResponse(404, "Image not readable and placeholder not found");
+            }
         }
         $cachename = md5($imgname .'_'. $maxxstring .'_'. $maxystring .'_'. $mode .'_'. $ctime);
         $maxx=$maxxstring=='' ? null : intval($maxxstring,10);
@@ -65,15 +82,32 @@ class ThumbnailService
         $fromcache = $this->getResponseForCachedImage($cachename, $ctime);
         if ($fromcache) { //ist bereits im cache:
             return $fromcache;
-        } else { //thumbnail erstellen:   
-            $oimage = $this->getOriginalImage($imgname, $info);
+        } else { //thumbnail erstellen:
+            try {
+                $oimage = $this->getOriginalImage($imgname, $info);
+            }catch(\Exception $e){
+                return $this->createErrorResponse(500, $e->getMessage());
+            }
             $image = $this->getImage($oimage, $info, $mode, $maxx, $maxy);
-            if ($image === false) throw new NotFoundHttpException("Error reading image");
+            if ($image === false) return $this->createErrorResponse(404, "Image not readable");
             $response = $this->createResponseForImage($image, $info, $cachename, $ctime);
             if ($image) imagedestroy($image);
             if ($oimage) imagedestroy($oimage);
             return $response;
         }
+    }
+
+    /**
+     * Create a new error response
+     * @param int $statuscode
+     * @param string $message
+     * @return Response
+     */
+    private function createErrorResponse($statuscode, $message){
+        $response=new Response();
+        $response->setStatusCode($statuscode);
+        $response->setContent($message);
+        return $response;
     }
 
     /**
@@ -87,7 +121,7 @@ class ThumbnailService
      */
     private function createResponseForImage($image, $info, $cachename, $ctime)
     {
-        $expires = isset($this->config['expiretime']) ? $this->config['expiretime'] : 1 * 24 * 60 * 60;
+        $expires = isset($this->expiretime) ? $this->expiretime : 1 * 24 * 60 * 60;
         ob_start(); // start a new output buffer
         if ($info[2] == 1) { //Original ist ein GIF
             imagegif($image, NULL);
@@ -225,28 +259,28 @@ class ThumbnailService
             try {
                 $oimage = imagecreatefromgif($imgname);
             } catch (\Exception $e) {
-                throw new HttpException(500, 'Caught exception: ', $e->getMessage());
+                throw new \Exception($e->getMessage());
             }
         } else if ($info[2] == 2) { //Original ist ein JPG
             try {
                 $oimage = imagecreatefromjpeg($imgname);
             } catch (\Exception $e) {
-                throw new HttpException(500, 'Caught exception: ', $e->getMessage());
+                throw new \Exception($e->getMessage());
             }
         } else if ($info[2] == 3) { //Original ist ein PNG
             try {
                 $oimage = imagecreatefrompng($imgname);
             } catch (\Exception $e) {
-                throw new HttpException(500, 'Caught exception: ', $e->getMessage());
+                throw new \Exception($e->getMessage());
             }
         } else if ($info[2] == 6) { //Original ist ein BMP
             try {
                 $oimage = $this->imagecreatefrombmp($imgname);
             } catch (\Exception $e) {
-                throw new HttpException(500, 'Caught exception: ', $e->getMessage());
+                throw new \Exception($e->getMessage());
             }
         } else {
-            throw new HttpException(500, "Error reading image");
+            throw new \Exception("Error reading image");
         }
         return $oimage;
     }
@@ -258,7 +292,7 @@ class ThumbnailService
      */
     private function getResponseForCachedImage($cachename, $ctime)
     {
-        $expires = isset($this->config['expiretime']) ? $this->config['expiretime'] : 1 * 24 * 60 * 60;
+        $expires = isset($this->expiretime) ? $this->expiretime : 1 * 24 * 60 * 60;
         if ($cachefile = $this->cachingService->fetch('JustThumbnailBundle' . $cachename)) {
             //ist bereits im cache:
             $uscachefile = unserialize($cachefile);

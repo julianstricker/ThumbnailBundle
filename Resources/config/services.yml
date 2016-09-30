@@ -10,4 +10,4 @@ services:
 
     just_thumbnail:
             class:        Just\ThumbnailBundle\Services\ThumbnailService
-            arguments: [ %just_thumbnail%, %kernel.root_dir%, %services.cache% ]
+            arguments: [ "%just_thumbnail.imagesrootdir%", "%just_thumbnail.placeholder%","%just_thumbnail.expiretime%", "%kernel.root_dir%", "@cache" ]
