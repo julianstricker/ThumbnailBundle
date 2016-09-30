@@ -69,7 +69,7 @@ class ThumbnailService
                 return $this->createErrorResponse(404, "Image not readable and placeholder not found");
             }
         }
-
+        $ctime = filectime($imgname);
         $cachename = md5($imgname .'_'. $maxxstring .'_'. $maxystring .'_'. $mode .'_'. $ctime);
         $maxx=$maxxstring=='' ? null : intval($maxxstring,10);
         $maxy=$maxxstring=='' ? null : intval($maxxstring,10);
