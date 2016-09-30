@@ -117,10 +117,10 @@ The thumbnail will be generated just in time when the url is called:
 
 #### Parameter "mode"
 This parameter can be set to "normal", "crop", "stretch" and "max".
-normal: Sets the image to the maximum height or width, without changing the width/height proportion;
-crop: The image will be cropped exactly to the given height and width without changing the width/height proportion;
-stretch: Sets the image to the maximum height or width, the width/height proportion changes.
-max: Sets the image to the maximum height or width, without changing the width/height proportion;
+* normal: Sets the image to the maximum height or width, without changing the width/height proportion;
+* crop: The image will be cropped exactly to the given height and width without changing the width/height proportion;
+* stretch: Sets the image to the maximum height or width, the width/height proportion changes.
+* max: Sets the image to the maximum height or width, without changing the width/height proportion;
 
 #### Parameter maxx and maxy
 "maxx" is the maximum width and "maxy" the maximun height of the generated thumbnail.

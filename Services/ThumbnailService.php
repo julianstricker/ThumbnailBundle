@@ -8,6 +8,7 @@
 namespace Just\ThumbnailBundle\Services;
 
 use Doctrine\Common\Cache\CacheProvider;
+use svay\FaceDetector;
 use Symfony\Component\HttpFoundation\Response;
 
 
@@ -43,9 +44,10 @@ class ThumbnailService
      * @param string $maxystring
      * @param string $mode
      * @param string $placeholderparam
+     * @param string $center '', 'auto' or '[(int) x]x[(int) y]'
      * @return Response
      */
-    public function generateResponseForImage($img, $maxxstring, $maxystring, $mode, $placeholderparam)
+    public function generateResponseForImage($img, $maxxstring, $maxystring, $mode, $placeholderparam='',$center='')
     {
         $imagesrootdir = isset($this->imagesrootdir) ? $this->imagesrootdir : $this->root_dir . '/../web/';
         $placeholder = $placeholderparam != '' ? $placeholderparam : (isset($this->placeholder) ? $this->placeholder : null);
@@ -70,7 +72,7 @@ class ThumbnailService
             }
         }
         $ctime = filectime($imgname);
-        $cachename = md5($imgname .'_'. $maxxstring .'_'. $maxystring .'_'. $mode .'_'. $ctime);
+        $cachename = md5($imgname .'_'. $maxxstring .'_'. $maxystring .'_'. $mode . '_' . $center .'_'. $ctime);
         $maxx=$maxxstring=='' ? null : intval($maxxstring,10);
         $maxy=$maxystring=='' ? null : intval($maxystring,10);
         //ist bereits im cache?
@@ -81,7 +83,7 @@ class ThumbnailService
         }catch(\Exception $e){
             return $this->createErrorResponse(500, $e->getMessage());
         }
-        $image = $this->getImage($oimage, $info, $mode, $maxx, $maxy);
+        $image = $this->getImage($oimage, $info, $mode, $maxx, $maxy, $center);
         if ($image === false) return $this->createErrorResponse(404, "Image not readable");
         $response = $this->createResponseForImage($image, $info, $cachename, $ctime);
         if ($image) imagedestroy($image);
@@ -153,15 +155,17 @@ class ThumbnailService
      * @param resource $oimage      The original image resource
      * @param array $info           Image info from getimagesize
      * @param string $mode          Resizing mode ("normal", "crop", "stretch" or "max")
-     * @param int|null $maxx             New image maximal width
-     * @param int|null $maxy             New image maximal height
+     * @param int|null $maxx        New image maximal width
+     * @param int|null $maxy        New image maximal height
+     * @param string $center        '', 'auto' or '[(int) x]x[(int) y]'
      * @return resource
      */
-    private function getImage($oimage, $info, $mode, $maxx, $maxy)
+    private function getImage($oimage, $info, $mode, $maxx, $maxy, $center='')
     {
         $ogrx = $info[0];
         $ogry = $info[1];
         $imagesizes = $this->getNewimagesizes($mode, $maxx, $maxy, $ogrx, $ogry);
+        dump([$mode, $maxx, $maxy, $ogrx, $ogry]);
         $ngrx = $imagesizes['ngrx'];
         $ngry = $imagesizes['ngry'];
         $maxx = $imagesizes['maxx'];
@@ -186,11 +190,70 @@ class ThumbnailService
         if ($mode == 'normal' || $mode == 'max') {
             imagecopyresampled($image, $oimage, 0, 0, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
         } else if ($mode == 'crop') {
-            imagecopyresampled($image, $oimage, -($ngrx - $maxx) / 2, -($ngry - $maxy) / 2, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
+            $dstxy = $this->findCenterForImage($oimage,$center,$imagesizes, $ogrx, $ogry);
+            imagecopyresampled($image, $oimage, $dstxy['x'], $dstxy['y'], 0, 0, $ngrx, $ngry, $ogrx, $ogry);
         } else if ($mode == 'stretch') {
             imagecopyresampled($image, $oimage, 0, 0, 0, 0, $maxx, $maxy, $ogrx, $ogry);
         }
         return $image;
+    }
+
+    /**
+     * @param resource $oimage
+     * @param string $center
+     * @param array $imagesizes
+     * @param $ogrx
+     * @param $ogry
+     * @return array
+     */
+    private function findCenterForImage($oimage, $center, $imagesizes, $ogrx, $ogry){
+        dump($imagesizes);
+        dump($center);
+        if($center=='') {
+
+            return ['x' => -($imagesizes['ngrx'] - $imagesizes['maxx']) / 2, 'y' => -($imagesizes['ngry'] - $imagesizes['maxy']) / 2];
+        }else{
+            if($center=='auto'){ //face detection...
+                $centersplit=[-($imagesizes['ngrx'] - $imagesizes['maxx']) / 2, -($imagesizes['ngry'] - $imagesizes['maxy']) / 2];
+                $detector = new FaceDetector();
+                $result=$detector->faceDetect($oimage);
+                if ($result) {
+                    $face = $detector->getFace();
+                    $centersplit=[intval($face['x']+$face['w']/2),intval($face['y']+$face['w']/2)];
+                    /*dump($face);
+                    $color = imagecolorallocate($oimage, 255, 0, 0); //red
+
+                    imagerectangle(
+                        $oimage,
+                        $centersplit[0]-3,
+                        $centersplit[1]-3,
+                        $centersplit[0]+3,
+                        $centersplit[1]+3,
+                        $color
+                    );*/
+
+                }
+                dump($centersplit);
+            }else{
+                $centersplit=explode('x',$center);
+            }
+            $x = -($imagesizes['ngrx'] - $imagesizes['maxx']) / 2;
+            if($centersplit[0]!=''){
+                $centerx = intval($centersplit[0]);
+                $x = -($centerx - ($imagesizes['maxx'] / 2));
+                if ($x > 0) $x = 0;
+                if ($x < - $imagesizes['ngrx'] + $imagesizes['maxx']) $x = - $imagesizes['ngrx'] + $imagesizes['maxx'];
+            }
+            $y = -($imagesizes['ngry'] - $imagesizes['maxy']) / 2;
+            if($centersplit[1]!='') {
+                $centery = intval($centersplit[1]);
+                $y = -($centery - ($imagesizes['maxy'] / 2));
+                if ($y > 0) $y = 0;
+                if ($y < - $imagesizes['ngry'] + $imagesizes['maxy']) $y = - $imagesizes['ngry'] + $imagesizes['maxy'];
+            }
+            dump(['x'=>$x,'y'=>$y]);
+            return ['x'=>$x,'y'=>$y];
+        }
     }
 
     /**
