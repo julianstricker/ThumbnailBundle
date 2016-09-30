@@ -48,13 +48,10 @@ class ThumbnailService
     public function generateResponseForImage($img, $maxxstring, $maxystring, $mode, $placeholderparam)
     {
         $imagesrootdir = isset($this->imagesrootdir) ? $this->imagesrootdir : $this->root_dir . '/../web/';
-        $placeholder = isset($this->placeholder) ? $this->placeholder : null;
-        $placeholder = $placeholderparam != '' ? $placeholderparam : $placeholder;
+        $placeholder = $placeholderparam != '' ? $placeholderparam : (isset($this->placeholder) ? $this->placeholder : null);
         $imgname = $imagesrootdir . ltrim($img, '/\\');
         if (!is_file($imgname) || !is_readable($imgname)) {
-            if (is_null($placeholder)) {
-                return $this->createErrorResponse(404, "Image not found");
-            }
+            if (is_null($placeholder)) return $this->createErrorResponse(404, "Image not found");
             $imgname = $placeholder;
         }
         try{
@@ -65,9 +62,7 @@ class ThumbnailService
         }
 
         if (!$info) {
-            if (is_null($placeholder)) {
-                return $this->createErrorResponse(404, "Image not readable");
-            }
+            if (is_null($placeholder)) return $this->createErrorResponse(404, "Image not readable");
             $imgname = $placeholder;
             try{
                 $info = getimagesize($imgname);
@@ -80,21 +75,21 @@ class ThumbnailService
         $maxx=$maxxstring=='' ? null : intval($maxxstring,10);
         $maxy=$maxxstring=='' ? null : intval($maxxstring,10);
         $fromcache = $this->getResponseForCachedImage($cachename, $ctime);
-        if ($fromcache) { //ist bereits im cache:
-            return $fromcache;
-        } else { //thumbnail erstellen:
-            try {
-                $oimage = $this->getOriginalImage($imgname, $info);
-            }catch(\Exception $e){
-                return $this->createErrorResponse(500, $e->getMessage());
-            }
-            $image = $this->getImage($oimage, $info, $mode, $maxx, $maxy);
-            if ($image === false) return $this->createErrorResponse(404, "Image not readable");
-            $response = $this->createResponseForImage($image, $info, $cachename, $ctime);
-            if ($image) imagedestroy($image);
-            if ($oimage) imagedestroy($oimage);
-            return $response;
+        //ist bereits im cache?
+        if ($fromcache) return $fromcache;
+         //thumbnail erstellen:
+        try {
+            $oimage = $this->getOriginalImage($imgname, $info);
+        }catch(\Exception $e){
+            return $this->createErrorResponse(500, $e->getMessage());
         }
+        $image = $this->getImage($oimage, $info, $mode, $maxx, $maxy);
+        if ($image === false) return $this->createErrorResponse(404, "Image not readable");
+        $response = $this->createResponseForImage($image, $info, $cachename, $ctime);
+        if ($image) imagedestroy($image);
+        if ($oimage) imagedestroy($oimage);
+        return $response;
+
     }
 
     /**
