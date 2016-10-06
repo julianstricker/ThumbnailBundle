@@ -230,13 +230,13 @@ class ThumbnailService
                 if($centersplit[1]!='') $centery = intval($centersplit[1])*($imagesizes['ngry']/$ogry);
             }
             $x = -($imagesizes['ngrx'] - $imagesizes['maxx']) / 2;
-            if($centerx!=null){
+            if($centerx!==null){
                 $x = (-$centerx + $imagesizes['maxx']/2 );
                 if ($x > 0) $x = 0;
                 if ($x < - $imagesizes['ngrx'] + $imagesizes['maxx']) $x = - $imagesizes['ngrx'] + $imagesizes['maxx'];
             }
             $y = -($imagesizes['ngry'] - $imagesizes['maxy']) / 2;
-            if($centery!=null) {
+            if($centery!==null) {
                 $y = -($centery - ($imagesizes['maxy'] / 2));
                 if ($y > 0) $y = 0;
                 if ($y < - $imagesizes['ngry'] + $imagesizes['maxy']) $y = - $imagesizes['ngry'] + $imagesizes['maxy'];
@@ -260,17 +260,17 @@ class ThumbnailService
         if ($mode == 'max') {
             $ngrx = $ogrx;
             $ngry = $ogry;
-            if ($maxx != null && $ngrx > $maxx) {
+            if ($maxx !== null && $ngrx > $maxx) {
                 $ngrx = $maxx;
                 $ngry = ($ogry / $ogrx) * $maxx;
             }
-            if ($maxy != null && $ngry > $maxy) {
+            if ($maxy !== null && $ngry > $maxy) {
                 $ngry = $maxy;
                 $ngrx = ($ogrx / $ogry) * $maxy;
             }
         } else {
-            if ($maxx == null) $maxx = ($ogrx / $ogry) * $maxy;
-            if ($maxy == null) $maxy = ($ogry / $ogrx) * $maxx;
+            if ($maxx === null) $maxx = ($ogrx / $ogry) * $maxy;
+            if ($maxy === null) $maxy = ($ogry / $ogrx) * $maxx;
             if ($mode == 'crop') {
                 if ($ogrx / $maxx > $ogry / $maxy) { //Breitformat
                     $ngry = $maxy;
