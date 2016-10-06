@@ -9,7 +9,6 @@ namespace Just\ThumbnailBundle\Tests\Controller;
 
 use Doctrine\Common\Cache\FilesystemCache;
 use Just\ThumbnailBundle\Services\ThumbnailService;
-use svay\FaceDetector;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -87,36 +86,6 @@ class ThumbnailServiceTest extends KernelTestCase
         $response = $this->thumbnailservice->generateResponseForImage('cats.jpeg', 1000, 50, 'max', '');//$this->placeholder);
         $this->assertTrue($response->headers->contains('Content-Type','image/jpeg'));
         $this->assertTrue($response->getStatusCode()==200);
-    }
-    /*public function testFacedetection(){
-        $detector = new FaceDetector();
-        $result=$detector->faceDetect( __DIR__.'/../Fixtures/assets/catsanddog.jpeg');
-        dump($result);
-        $face=$detector->getFace();
-        $canvas = imagecreatefromjpeg( __DIR__.'/../Fixtures/assets/catsanddog.jpeg');
-        $color = imagecolorallocate($canvas, 255, 0, 0); //red
-
-        imagerectangle(
-            $canvas,
-            $face['x'],
-            $face['y'],
-            $face['x']+$face['w'],
-            $face['y']+ $face['w'],
-            $color
-        );
-
-
-        imagejpeg($canvas,__DIR__.'/../../../../../var/cache/test/face.jpg');
-
-
-    }*/
-    public function testCenterCrop(){
-
-        $response = $this->thumbnailservice->generateResponseForImage('catsanddog.jpeg', 150, 600, 'crop', '', 'auto'); //'1200x500');//$this->placeholder);
-        $this->assertTrue($response->headers->contains('Content-Type','image/jpeg'));
-
-        file_put_contents('/var/www/vhosts/justthumbnailtests/var/cache/test/cropcenter.jpg',$response->getContent());
-        $this->assertTrue($response->getStatusCode()==2000);
     }
 
 

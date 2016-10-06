@@ -29,9 +29,10 @@ class ThumbnailController extends Controller {
         $maxy = $request->get('maxy', '');
         $mode = $request->get('mode', 'normal');
         $placeholder = $request->get('placeholder', '');
+        $center = $request->get('center', '');
         /** @var ThumbnailService $thumbnailservice */
         $thumbnailservice = $this->get('just_thumbnail');
-        $response = $thumbnailservice->generateResponseForImage($img, $maxx, $maxy, $mode, $placeholder);
+        $response = $thumbnailservice->generateResponseForImage($img, $maxx, $maxy, $mode, $placeholder,$center);
         return $response;
     }
 

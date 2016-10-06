@@ -6,7 +6,7 @@ Overview
 ========
 
 This is a bundle for the Symfony2 and Symfony3 framework that creates Thumbnails on first demand. The thumbnails then are stored using the Symfony cache system.
-It creates a thumbnail of a image in the given size and stores it in cache for the next calls, until the image changes.
+It creates a thumbnail of a image in the given size and stores it in cache for the next calls, until the image changes. The bundle has a new face-detection feature to avoid cut off of faces.
 
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/f97fef15-6eb9-45e2-9973-5948514a4864/big.png)](https://insight.sensiolabs.com/projects/f97fef15-6eb9-45e2-9973-5948514a4864)
 
@@ -23,7 +23,7 @@ Installation
 
 Add the following line to your composer.json require block:
 
-```js
+```
 // composer.json
 {
     // ...
@@ -107,9 +107,6 @@ Or if you prefer XML:
 The thumbnail will be generated just in time when the url is called:
 
 ``` 
-/thumbnails/{mode}/{maxx}x{maxy}/{img}.{extension}
-/thumbnails/{mode}/{maxx}x/{img}.{extension}
-/thumbnails/{mode}/x{maxy}/{img}.{extension}
 /thumbnails/{mode}/{maxx}x{maxy}/{img}
 /thumbnails/{mode}/{maxx}x/{img}
 /thumbnails/{mode}/x{maxy}/{img}
@@ -127,6 +124,11 @@ This parameter can be set to "normal", "crop", "stretch" and "max".
 
 #### Placeholder
 You can overwrite the placeholder-file-config by adding a "placeholder"-Parameter to the url. Example: www.yourdomain.tld/thumbnails/stretch/800x225/path/to/image?placeholder=new_placeholder_image.jpg
+
+#### Parameter "center"
+This parameter can be set to "", "auto", or "[int],[int]". Default is "".
+This parameter can be used to define a center point of a image that should be always visible in crop mode. This is to avoid that highlights of the image are cut off.
+If set to "auto", the script will try to detect a face in the image. If found, the center will be set to the center of the detected face. So the face should not be cut off.
 
 #### Twig Helper
 You can use the twig helper to generate the URL :

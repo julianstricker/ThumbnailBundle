@@ -52,6 +52,7 @@ class ThumbnailService
         $imagesrootdir = isset($this->imagesrootdir) ? $this->imagesrootdir : $this->root_dir . '/../web/';
         $placeholder = $placeholderparam != '' ? $placeholderparam : (isset($this->placeholder) ? $this->placeholder : null);
         $imgname = $imagesrootdir . ltrim($img, '/\\');
+
         if (!is_file($imgname) || !is_readable($imgname)) {
             if (is_null($placeholder)) return $this->createErrorResponse(404, "Image not found");
             $imgname = $placeholder;
@@ -165,7 +166,6 @@ class ThumbnailService
         $ogrx = $info[0];
         $ogry = $info[1];
         $imagesizes = $this->getNewimagesizes($mode, $maxx, $maxy, $ogrx, $ogry);
-        dump([$mode, $maxx, $maxy, $ogrx, $ogry]);
         $ngrx = $imagesizes['ngrx'];
         $ngry = $imagesizes['ngry'];
         $maxx = $imagesizes['maxx'];
@@ -200,58 +200,47 @@ class ThumbnailService
 
     /**
      * @param resource $oimage
-     * @param string $center
+     * @param string $center '', 'auto' or '[int],[int'
      * @param array $imagesizes
      * @param $ogrx
      * @param $ogry
      * @return array
      */
     private function findCenterForImage($oimage, $center, $imagesizes, $ogrx, $ogry){
-        dump($imagesizes);
-        dump($center);
         if($center=='') {
-
             return ['x' => -($imagesizes['ngrx'] - $imagesizes['maxx']) / 2, 'y' => -($imagesizes['ngry'] - $imagesizes['maxy']) / 2];
         }else{
             if($center=='auto'){ //face detection...
-                $centersplit=[-($imagesizes['ngrx'] - $imagesizes['maxx']) / 2, -($imagesizes['ngry'] - $imagesizes['maxy']) / 2];
                 $detector = new FaceDetector();
                 $result=$detector->faceDetect($oimage);
                 if ($result) {
                     $face = $detector->getFace();
                     $centersplit=[intval($face['x']+$face['w']/2),intval($face['y']+$face['w']/2)];
-                    /*dump($face);
-                    $color = imagecolorallocate($oimage, 255, 0, 0); //red
-
-                    imagerectangle(
-                        $oimage,
-                        $centersplit[0]-3,
-                        $centersplit[1]-3,
-                        $centersplit[0]+3,
-                        $centersplit[1]+3,
-                        $color
-                    );*/
-
+                    $centerx = intval($centersplit[0])*($imagesizes['ngrx']/$ogrx);
+                    $centery = intval($centersplit[1])*($imagesizes['ngry']/$ogry);
+                }else{
+                    return ['x' => -($imagesizes['ngrx'] - $imagesizes['maxx']) / 2, 'y' => -($imagesizes['ngry'] - $imagesizes['maxy']) / 2];
                 }
-                dump($centersplit);
+
             }else{
-                $centersplit=explode('x',$center);
+                $centersplit=explode(',',$center);
+                $centerx=null;
+                $centery=null;
+                if($centersplit[0]!='') $centerx = intval($centersplit[0])*($imagesizes['ngrx']/$ogrx);
+                if($centersplit[1]!='') $centery = intval($centersplit[1])*($imagesizes['ngry']/$ogry);
             }
             $x = -($imagesizes['ngrx'] - $imagesizes['maxx']) / 2;
-            if($centersplit[0]!=''){
-                $centerx = intval($centersplit[0]);
-                $x = -($centerx - ($imagesizes['maxx'] / 2));
+            if($centerx!=null){
+                $x = (-$centerx + $imagesizes['maxx']/2 );
                 if ($x > 0) $x = 0;
                 if ($x < - $imagesizes['ngrx'] + $imagesizes['maxx']) $x = - $imagesizes['ngrx'] + $imagesizes['maxx'];
             }
             $y = -($imagesizes['ngry'] - $imagesizes['maxy']) / 2;
-            if($centersplit[1]!='') {
-                $centery = intval($centersplit[1]);
+            if($centery!=null) {
                 $y = -($centery - ($imagesizes['maxy'] / 2));
                 if ($y > 0) $y = 0;
                 if ($y < - $imagesizes['ngry'] + $imagesizes['maxy']) $y = - $imagesizes['ngry'] + $imagesizes['maxy'];
             }
-            dump(['x'=>$x,'y'=>$y]);
             return ['x'=>$x,'y'=>$y];
         }
     }
