@@ -269,14 +269,6 @@ class ThumbnailService
         if ($y<-$imagesizes['ngry']+$imagesizes['maxy']) $y=-$imagesizes['ngry']+$imagesizes['maxy'];
 
 
-        /*
-
-        if(round($ogrx*$factor)+$x>$imagesizes['ngrx']) $x=$imagesizes['ngrx']-round($ogrx*$factor);
-        if(round($ogry*$factor)+$y>$imagesizes['ngry']) $y=$imagesizes['ngry']-round($ogry*$factor);
-        if(round($ogrx*$factor)+$x<0) $x=-round($ogrx*$factor);
-        if(round($ogry*$factor)+$y<0) $y=-round($ogry*$factor);
-        */
-
         return ['x'=>$x,'y'=>$y];
 
 
