@@ -20,6 +20,7 @@ class ThumbnailService
     private $expiretime;
     private $root_dir;
     private $cachingService;
+    private $debug=false;
 
     /**
      * ThumbnailService constructor.
@@ -78,7 +79,7 @@ class ThumbnailService
         $maxy=$maxystring=='' ? null : intval($maxystring,10);
         //ist bereits im cache?
         if ($this->imageIsCached($cachename)) return  $this->getResponseForCachedImage($cachename, $ctime, $info);
-         //thumbnail erstellen:
+        //thumbnail erstellen:
         try {
             $oimage = $this->getOriginalImage($imgname, $info);
         }catch(\Exception $e){
@@ -142,11 +143,13 @@ class ThumbnailService
         } else if ($info[2] == 6) { //Original ist ein BMP
             $response->headers->set('Content-Type', 'image/jpeg');
         }
+        $etag=md5($ImageData);
         $response->headers->set('Content-Length', strlen($ImageData));
         $response->headers->set('Pragma', 'public');
         $response->headers->set('Last-Modified', gmdate('D, d M Y H:i:s', $ctime) . ' GMT');
         $response->headers->set('Cache-Control', 'maxage=' . $expires);
         $response->headers->set('Expires', gmdate('D, d M Y H:i:s', $ctime + $expires) . ' GMT');
+        $response->headers->set('Etag', $etag);
         return $response;
     }
 
@@ -170,17 +173,26 @@ class ThumbnailService
         $ngry = $imagesizes['ngry'];
         $maxx = $imagesizes['maxx'];
         $maxy = $imagesizes['maxy'];
+
         if ($info[2] == 2 || $info[2] == 3 || $info[0] == 6) { //PNG, JPG
             if ($mode == 'normal' || $mode == 'max') {
                 $image = imagecreatetruecolor($ngrx, $ngry);
             } else {
                 $image = imagecreatetruecolor($maxx, $maxy);
+                $resizedimage = imagecreatetruecolor(round($ngrx), round($ngry));
+                if($info[0]==3){
+                    imagealphablending($resizedimage, false);
+                    imagesavealpha($resizedimage, true);
+                }
+                imagecopyresampled($resizedimage, $oimage, 0, 0, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
             }
         } else { //GIF
             if ($mode == 'normal' || $mode == 'max') {
                 $image = imagecreate($ngrx, $ngry);
             } else {
                 $image = imagecreate($maxx, $maxy);
+                $resizedimage = imagecreate(round($ngrx), round($ngry));
+                imagecopyresampled($image, $oimage, 0, 0, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
             }
         }
         if ($info[2] == 3) { //PNG
@@ -190,8 +202,10 @@ class ThumbnailService
         if ($mode == 'normal' || $mode == 'max') {
             imagecopyresampled($image, $oimage, 0, 0, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
         } else if ($mode == 'crop') {
-            $dstxy = $this->findCenterForImage($oimage,$center,$imagesizes, $ogrx, $ogry);
-            imagecopyresampled($image, $oimage, $dstxy['x'], $dstxy['y'], 0, 0, $ngrx, $ngry, $ogrx, $ogry);
+            if (isset($resizedimage)) {
+                $dstxy = $this->findCenterForImage($resizedimage, $center, $imagesizes, $ogrx, $ogry);
+                imagecopyresampled($image, $resizedimage, $dstxy['x'], $dstxy['y'], 0, 0, $ngrx, $ngry, $ngrx, $ngry);
+            }
         } else if ($mode == 'stretch') {
             imagecopyresampled($image, $oimage, 0, 0, 0, 0, $maxx, $maxy, $ogrx, $ogry);
         }
@@ -200,49 +214,73 @@ class ThumbnailService
 
     /**
      * @param resource $oimage
-     * @param string $center '', 'auto' or '[int],[int'
+     * @param string $center '', 'auto' or '[int],[int]' koordinaten des Mittelpunktes auf dem Originalbild
      * @param array $imagesizes
      * @param $ogrx
      * @param $ogry
-     * @return array
+     * @return array x,y Verschiebung des verkleinerten Bildes.
      */
     private function findCenterForImage($oimage, $center, $imagesizes, $ogrx, $ogry){
-        if($center=='') {
-            return ['x' => -($imagesizes['ngrx'] - $imagesizes['maxx']) / 2, 'y' => -($imagesizes['ngry'] - $imagesizes['maxy']) / 2];
-        }else{
-            if($center=='auto'){ //face detection...
-                $detector = new FaceDetector();
-                $result=$detector->faceDetect($oimage);
-                if ($result) {
-                    $face = $detector->getFace();
-                    $centersplit=[intval($face['x']+$face['w']/2),intval($face['y']+$face['w']/2)];
-                    $centerx = intval($centersplit[0])*($imagesizes['ngrx']/$ogrx);
-                    $centery = intval($centersplit[1])*($imagesizes['ngry']/$ogry);
-                }else{
-                    return ['x' => -($imagesizes['ngrx'] - $imagesizes['maxx']) / 2, 'y' => -($imagesizes['ngry'] - $imagesizes['maxy']) / 2];
+        $factor = $imagesizes['ngrx'] / $ogrx;
+        $centerx=0;
+        $centery=0;
+        if($center=='auto') { //face detection...
+            $detector = new FaceDetector();
+            $result = $detector->faceDetect($oimage);
+            if ($result) {
+                $face = $detector->getFace();
+
+                $centerx=round(($face['x'] + $face['w'] / 2)/$factor);
+                $centery=round(($face['y'] + $face['w'] / 2)/$factor);
+                if ($this->debug) {
+                    $color = imagecolorallocate($oimage, 255, 0, 0); //red
+
+                    imagefilledrectangle(
+                        $oimage,
+                        $face['x'],
+                        $face['y'],
+                        $face['x'] + $face['w'],
+                        $face['y'] + $face['w'],
+                        $color
+                    );
                 }
 
-            }else{
-                $centersplit=explode(',',$center);
-                $centerx=null;
-                $centery=null;
-                if($centersplit[0]!='') $centerx = intval($centersplit[0])*($imagesizes['ngrx']/$ogrx);
-                if($centersplit[1]!='') $centery = intval($centersplit[1])*($imagesizes['ngry']/$ogry);
+            } else {
+                $center = '';
             }
-            $x = -($imagesizes['ngrx'] - $imagesizes['maxx']) / 2;
-            if($centerx!==null){
-                $x = (-$centerx + $imagesizes['maxx']/2 );
-                if ($x > 0) $x = 0;
-                if ($x < - $imagesizes['ngrx'] + $imagesizes['maxx']) $x = - $imagesizes['ngrx'] + $imagesizes['maxx'];
-            }
-            $y = -($imagesizes['ngry'] - $imagesizes['maxy']) / 2;
-            if($centery!==null) {
-                $y = -($centery - ($imagesizes['maxy'] / 2));
-                if ($y > 0) $y = 0;
-                if ($y < - $imagesizes['ngry'] + $imagesizes['maxy']) $y = - $imagesizes['ngry'] + $imagesizes['maxy'];
-            }
-            return ['x'=>$x,'y'=>$y];
         }
+        if($center!='auto'){
+            if ($center == '') {
+                $centerx = $ogrx / 2;
+                $centery = $ogry / 2;
+            } else {
+                $centersplit = explode(',', $center);
+                $centerx = (float)$centersplit[0];
+                $centery = (float)$centersplit[1];
+            }
+        }
+        //centerx/centery = Mittelpunkt des Originalbildes (errechnet oder übergeben)
+        $x= -round($centerx* $factor - $imagesizes['maxx']/2);
+        $y= -round($centery* $factor - $imagesizes['maxy']/2);
+
+        if ($x>0) $x=0;
+        if ($y>0) $y=0;
+        if ($x<-$imagesizes['ngrx']+$imagesizes['maxx']) $x=-$imagesizes['ngrx']+$imagesizes['maxx'];
+        if ($y<-$imagesizes['ngry']+$imagesizes['maxy']) $y=-$imagesizes['ngry']+$imagesizes['maxy'];
+
+
+        /*
+
+        if(round($ogrx*$factor)+$x>$imagesizes['ngrx']) $x=$imagesizes['ngrx']-round($ogrx*$factor);
+        if(round($ogry*$factor)+$y>$imagesizes['ngry']) $y=$imagesizes['ngry']-round($ogry*$factor);
+        if(round($ogrx*$factor)+$x<0) $x=-round($ogrx*$factor);
+        if(round($ogry*$factor)+$y<0) $y=-round($ogry*$factor);
+        */
+
+        return ['x'=>$x,'y'=>$y];
+
+
+
     }
 
     /**
@@ -363,11 +401,13 @@ class ThumbnailService
             } else if ($info[2] == 6) { //Original ist ein BMP
                 $response->headers->set('Content-Type', 'image/jpeg');
             }
+            $etag=md5($uscachefile);
             $response->headers->set('Content-Length', strlen($uscachefile));
             $response->headers->set('Pragma', 'public');
             $response->headers->set('Last-Modified', gmdate('D, d M Y H:i:s', $ctime) . ' GMT');
             $response->headers->set('Cache-Control', 'maxage=' . $expires);
             $response->headers->set('Expires', gmdate('D, d M Y H:i:s', time() + $expires) . ' GMT');
+            $response->headers->set('Etag', $etag);
             return $response;
         }
         return false;
