@@ -46,9 +46,10 @@ class ThumbnailService
      * @param string $mode
      * @param string $placeholderparam
      * @param string $center '', 'auto' or '[(int) x]x[(int) y]'
+     * @param int $quality
      * @return Response
      */
-    public function generateResponseForImage($img, $maxxstring, $maxystring, $mode, $placeholderparam='',$center='')
+    public function generateResponseForImage($img, $maxxstring, $maxystring, $mode, $placeholderparam='',$center='', $quality=75)
     {
         $imagesrootdir = isset($this->imagesrootdir) ? $this->imagesrootdir : $this->root_dir . '/../web/';
         $placeholder = $placeholderparam != '' ? $placeholderparam : (isset($this->placeholder) ? $this->placeholder : null);
@@ -74,7 +75,7 @@ class ThumbnailService
             }
         }
         $ctime = filectime($imgname);
-        $cachename = md5($imgname .'_'. $maxxstring .'_'. $maxystring .'_'. $mode . '_' . $center .'_'. $ctime);
+        $cachename = md5($imgname .'_'. $maxxstring .'_'. $maxystring .'_'. $mode . '_' . $center .'_'. $quality.'_'. $ctime);
         $maxx=$maxxstring=='' ? null : intval($maxxstring,10);
         $maxy=$maxystring=='' ? null : intval($maxystring,10);
         //ist bereits im cache?
@@ -87,7 +88,7 @@ class ThumbnailService
         }
         $image = $this->getImage($oimage, $info, $mode, $maxx, $maxy, $center);
         if ($image === false) return $this->createErrorResponse(404, "Image not readable");
-        $response = $this->createResponseForImage($image, $info, $cachename, $ctime);
+        $response = $this->createResponseForImage($image, $info, $cachename, $ctime, $quality);
         if ($image) imagedestroy($image);
         if ($oimage) imagedestroy($oimage);
         return $response;
@@ -109,13 +110,14 @@ class ThumbnailService
     /**
      * Create new response for image resource
      *
-     * @param resource $image           The original image resource
-     * @param array $info               Image info from getimagesize
-     * @param string $cachename         Name to use for storing new image in cache
-     * @param int $ctime                Timestamp modifiactiontime
+     * @param resource $image The original image resource
+     * @param array $info Image info from getimagesize
+     * @param string $cachename Name to use for storing new image in cache
+     * @param int $ctime Timestamp modifiactiontime
+     * @param int $quality 75, 0..100
      * @return Response
      */
-    private function createResponseForImage($image, $info, $cachename, $ctime)
+    private function createResponseForImage($image, $info, $cachename, $ctime, $quality = 75)
     {
         $expires = isset($this->expiretime) ? $this->expiretime : 1 * 24 * 60 * 60;
         ob_start(); // start a new output buffer
@@ -123,12 +125,12 @@ class ThumbnailService
             imagegif($image, NULL);
         } else if ($info[2] == 2) { //Original ist ein JPG
             imageinterlace($image, 1);
-            imagejpeg($image, NULL, 100);
+            imagejpeg($image, NULL, $quality);
         } else if ($info[2] == 3) { //Original ist ein PNG
             imagepng($image, NULL);
         } else if ($info[2] == 6) { //Original ist ein BMP
             imageinterlace($image, 1);
-            imagejpeg($image, NULL, 100);
+            imagejpeg($image, NULL, $quality);
         }
         $ImageData = ob_get_contents();
         ob_end_clean(); // stop this output buffer
@@ -156,12 +158,12 @@ class ThumbnailService
     /**
      * Get image with the new size
      *
-     * @param resource $oimage      The original image resource
-     * @param array $info           Image info from getimagesize
-     * @param string $mode          Resizing mode ("normal", "crop", "stretch" or "max")
-     * @param int|null $maxx        New image maximal width
-     * @param int|null $maxy        New image maximal height
-     * @param string $center        '', 'auto' or '[(int) x]x[(int) y]'
+     * @param resource $oimage The original image resource
+     * @param array $info Image info from getimagesize
+     * @param string $mode Resizing mode ("normal", "crop", "stretch" or "max")
+     * @param int|null $maxx New image maximal width
+     * @param int|null $maxy New image maximal height
+     * @param string $center '', 'auto' or '[(int) x]x[(int) y]'
      * @return resource
      */
     private function getImage($oimage, $info, $mode, $maxx, $maxy, $center='')
