@@ -127,7 +127,7 @@ class ThumbnailService
             imageinterlace($image, 1);
             imagejpeg($image, NULL, $quality);
         } else if ($info[2] == 3) { //Original ist ein PNG
-            imagepng($image, NULL);
+            imagepng($image, NULL, round($quality/10));
         } else if ($info[2] == 6) { //Original ist ein BMP
             imageinterlace($image, 1);
             imagejpeg($image, NULL, $quality);
@@ -182,9 +182,11 @@ class ThumbnailService
             } else {
                 $image = imagecreatetruecolor($maxx, $maxy);
                 $resizedimage = imagecreatetruecolor(round($ngrx), round($ngry));
-                if($info[0]==3){
-                    imagealphablending($resizedimage, false);
+                if($info[2]==3){
+                    imagesavealpha($image, true);
+                    imagealphablending($image, false);
                     imagesavealpha($resizedimage, true);
+                    imagealphablending($resizedimage, false);
                 }
                 imagecopyresampled($resizedimage, $oimage, 0, 0, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
             }
@@ -198,8 +200,8 @@ class ThumbnailService
             }
         }
         if ($info[2] == 3) { //PNG
-            imagealphablending($image, false);
             imagesavealpha($image, true);
+            imagealphablending($image, false);
         }
         if ($mode == 'normal' || $mode == 'max') {
             imagecopyresampled($image, $oimage, 0, 0, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
@@ -346,6 +348,8 @@ class ThumbnailService
         } else if ($info[2] == 3) { //Original ist ein PNG
             try {
                 $oimage = imagecreatefrompng($imgname);
+                imagesavealpha($oimage, true);
+                imagealphablending($oimage, false);
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
             }
