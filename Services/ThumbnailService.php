@@ -149,7 +149,7 @@ class ThumbnailService
         $response->headers->set('Content-Length', strlen($ImageData));
         $response->headers->set('Pragma', 'public');
         $response->headers->set('Last-Modified', gmdate('D, d M Y H:i:s', $ctime) . ' GMT');
-        $response->headers->set('Cache-Control', 'maxage=' . $expires);
+        $response->headers->set('Cache-Control', 'max-age=' . $expires);
         $response->headers->set('Expires', gmdate('D, d M Y H:i:s', $ctime + $expires) . ' GMT');
         $response->headers->set('Etag', $etag);
         return $response;
@@ -403,7 +403,7 @@ class ThumbnailService
             $response->headers->set('Content-Length', strlen($uscachefile));
             $response->headers->set('Pragma', 'public');
             $response->headers->set('Last-Modified', gmdate('D, d M Y H:i:s', $ctime) . ' GMT');
-            $response->headers->set('Cache-Control', 'maxage=' . $expires);
+            $response->headers->set('Cache-Control', 'max-age=' . $expires);
             $response->headers->set('Expires', gmdate('D, d M Y H:i:s', time() + $expires) . ' GMT');
             $response->headers->set('Etag', $etag);
             return $response;
