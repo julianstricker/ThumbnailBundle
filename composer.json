@@ -13,7 +13,7 @@
     ],
     "require" : {
         "php": ">=5.3.2",
-        "symfony/framework-bundle": "^2.3 || ^3.0",
+        "symfony/framework-bundle": "^2.3 || ^3.0 || ^4.0",
         "doctrine/common": "~2.4",
         "mauricesvay/php-facedetection": "~0.1"
     },
