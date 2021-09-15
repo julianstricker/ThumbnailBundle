@@ -7,7 +7,9 @@ services:
         arguments: ["@router"]
         tags:
             -  { name: twig.extension }
+        public: true
 
     just_thumbnail:
-            class:        Just\ThumbnailBundle\Services\ThumbnailService
-            arguments: [ "%just_thumbnail.imagesrootdir%", "%just_thumbnail.placeholder%","%just_thumbnail.expiretime%", "%kernel.root_dir%", "@cache", "@logger" ]
+        class:        Just\ThumbnailBundle\Services\ThumbnailService
+        arguments: [ "%just_thumbnail.imagesrootdir%", "%just_thumbnail.placeholder%","%just_thumbnail.expiretime%", "%kernel.root_dir%", "@cache", "@logger" ]
+        public: true
