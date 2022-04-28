@@ -12,10 +12,11 @@
         "MIT"
     ],
     "require" : {
-        "php": ">=5.3.2",
+        "php": ">=5.4",
         "symfony/framework-bundle": "^2.3 || ^3.4.26 || ^4.1.12",
         "doctrine/common": "~2.4",
-        "mauricesvay/php-facedetection": "~0.1"
+        "mauricesvay/php-facedetection": "~0.1",
+        "ext-gd": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "5.5.*"

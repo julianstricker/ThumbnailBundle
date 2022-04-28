@@ -226,8 +226,8 @@ class ThumbnailService
      */
     private function findCenterForImage($oimage, $center, $imagesizes, $ogrx, $ogry){
         $factor = $imagesizes['ngrx'] / $ogrx;
-        $centerx=0;
-        $centery=0;
+        $centerx = $ogrx / 2;
+        $centery = $ogry / 2;
         if($center=='auto') { //face detection...
             $detector = new FaceDetector();
             $result = $detector->faceDetect($oimage);
@@ -259,8 +259,11 @@ class ThumbnailService
                 $centery = $ogry / 2;
             } else {
                 $centersplit = explode(',', $center);
-                $centerx = (float)$centersplit[0];
-                $centery = (float)$centersplit[1];
+                if (count($centersplit)==2){
+                    $centerx = (float)$centersplit[0];
+                    $centery = (float)$centersplit[1];
+                }
+
             }
         }
         //centerx/centery = Mittelpunkt des Originalbildes (errechnet oder übergeben)
