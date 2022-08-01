@@ -196,7 +196,7 @@ class ThumbnailService
             } else {
                 $image = imagecreate($maxx, $maxy);
                 $resizedimage = imagecreate(round($ngrx), round($ngry));
-                imagecopyresampled($image, $oimage, 0, 0, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
+                imagecopyresampled($resizedimage, $oimage, 0, 0, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
             }
         }
         if ($info[2] == 3) { //PNG

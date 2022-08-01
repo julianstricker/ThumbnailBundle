@@ -1,6 +1,6 @@
 {
     "name" : "just/thumbnailbundle",
-    "description" : "A Symfony2 bundle that creates Thumbnails on the fly using the GD library",
+    "description" : "A Symfony bundle that creates Thumbnails on the fly using the GD library",
     "homepage": "https://github.com/julianstricker/ThumbnailBundle",
     "type" : "symfony-bundle",
     "authors" : [{
