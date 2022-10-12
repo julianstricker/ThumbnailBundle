@@ -1,11 +1,11 @@
-Just/ThumbnailBundle - Symfony2/3 Bundle for on-the-fly Thumbnails Creation
+Just/ThumbnailBundle - Symfony2/3/4 Bundle for on-the-fly Thumbnails Creation
 =========================================================================
 
 
 Overview
 ========
 
-This is a bundle for the Symfony2 and Symfony3 framework that creates Thumbnails on first demand. The thumbnails then are stored using the Symfony cache system.
+This is a bundle for the Symfony2, Symfony3 and Symfony4 framework that creates Thumbnails on first demand. The thumbnails then are stored using the Symfony cache system.
 It creates a thumbnail of a image in the given size and stores it in cache for the next calls, until the image changes. The bundle has a new face-detection feature to avoid cut off of faces.
 
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/f97fef15-6eb9-45e2-9973-5948514a4864/big.png)](https://insight.sensiolabs.com/projects/f97fef15-6eb9-45e2-9973-5948514a4864)
