@@ -47,9 +47,10 @@ class ThumbnailService
      * @param string $placeholderparam
      * @param string $center '', 'auto' or '[(int) x]x[(int) y]'
      * @param int $quality
+     * @param string $type 'gif','jpg','bmp','png','webp', or null for same output file type as input file
      * @return Response
      */
-    public function generateResponseForImage($img, $maxxstring, $maxystring, $mode, $placeholderparam='',$center='', $quality=75)
+    public function generateResponseForImage($img, $maxxstring, $maxystring, $mode, $placeholderparam='',$center='', $quality=75, $type=null)
     {
         $imagesrootdir = isset($this->imagesrootdir) ? $this->imagesrootdir : $this->root_dir . '/../web/';
         $placeholder = $placeholderparam != '' ? $placeholderparam : (isset($this->placeholder) ? $this->placeholder : null);
@@ -88,7 +89,7 @@ class ThumbnailService
         }
         $image = $this->getImage($oimage, $info, $mode, $maxx, $maxy, $center);
         if ($image === false) return $this->createErrorResponse(404, "Image not readable");
-        $response = $this->createResponseForImage($image, $info, $cachename, $ctime, $quality);
+        $response = $this->createResponseForImage($image, $info, $cachename, $ctime, $quality,$type);
         if ($image) imagedestroy($image);
         if ($oimage) imagedestroy($oimage);
         return $response;
@@ -117,33 +118,37 @@ class ThumbnailService
      * @param int $quality 75, 0..100
      * @return Response
      */
-    private function createResponseForImage($image, $info, $cachename, $ctime, $quality = 75)
+    private function createResponseForImage($image, $info, $cachename, $ctime, $quality = 75, $type=null)
     {
         $expires = isset($this->expiretime) ? $this->expiretime : 1 * 24 * 60 * 60;
         ob_start(); // start a new output buffer
-        if ($info[2] == 1) { //Original ist ein GIF
+        if ($type == 'gif' || ($type==null && $info[2] == 1)) { //Original ist ein GIF
             imagegif($image, NULL);
-        } else if ($info[2] == 2) { //Original ist ein JPG
+        } else if ($type == 'jpg' || ($type==null && $info[2] == 2)) { //Original ist ein JPG
             imageinterlace($image, 1);
             imagejpeg($image, NULL, $quality);
-        } else if ($info[2] == 3) { //Original ist ein PNG
+        } else if ($type == 'png' || ($type==null && $info[2] == 3)) { //Original ist ein PNG
             imagepng($image, NULL, round($quality/10));
-        } else if ($info[2] == 6) { //Original ist ein BMP
+        } else if ($type == 'bmp' || ($type==null && $info[2] == 6)) { //Original ist ein BMP
             imageinterlace($image, 1);
             imagejpeg($image, NULL, $quality);
+        } else { //Original ist ein WebP
+            imagewebp($image, NULL, round($quality));
         }
         $ImageData = ob_get_contents();
         ob_end_clean(); // stop this output buffer
         $this->cachingService->save('JustThumbnailBundle' . $cachename, serialize($ImageData),$this->expiretime);
         $response = new Response($ImageData);
-        if ($info[2] == 1) { //Original ist ein GIF
+        if ($type == 'gif' || ($type==null && $info[2] == 1)) { //Original ist ein GIF
             $response->headers->set('Content-Type', 'image/gif');
-        } else if ($info[2] == 2) { //Original ist ein JPG
+        } else if ($type == 'jpg' || ($type==null && $info[2] == 2)) { //Original ist ein JPG
             $response->headers->set('Content-Type', 'image/jpeg');
-        } else if ($info[2] == 3) { //Original ist ein PNG
+        } else if ($type == 'png' || ($type==null && $info[2] == 3)) { //Original ist ein PNG
             $response->headers->set('Content-Type', 'image/png');
-        } else if ($info[2] == 6) { //Original ist ein BMP
+        } else if ($type == 'bmp' || ($type==null && $info[2] == 6)) { //Original ist ein BMP
             $response->headers->set('Content-Type', 'image/jpeg');
+        } else {
+            $response->headers->set('Content-Type', 'image/webp');
         }
         $etag=md5($ImageData);
         $response->headers->set('Content-Length', strlen($ImageData));
