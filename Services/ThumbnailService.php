@@ -76,7 +76,7 @@ class ThumbnailService
             }
         }
         $ctime = filectime($imgname);
-        $cachename = md5($imgname .'_'. $maxxstring .'_'. $maxystring .'_'. $mode . '_' . $center .'_'. $quality.'_'. $ctime);
+        $cachename = md5($imgname .'_'. $maxxstring .'_'. $maxystring .'_'. $mode . '_' . $center .'_'. $quality.'_'.$type.'_'. $ctime);
         $maxx=$maxxstring=='' ? null : intval($maxxstring,10);
         $maxy=$maxystring=='' ? null : intval($maxystring,10);
         //ist bereits im cache?
