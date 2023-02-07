@@ -61,7 +61,7 @@ class ThumbnailService
             $imgname = $placeholder;
         }
         try{
-            $info = getimagesize($imgname);
+            $info = $this->getImageSize($imgname);
         }catch(\Exception $e){
             return $this->createErrorResponse(404, "Image and placeholder not found");
         }
@@ -70,7 +70,7 @@ class ThumbnailService
             if (is_null($placeholder)) return $this->createErrorResponse(404, "Image not readable");
             $imgname = $placeholder;
             try{
-                $info = getimagesize($imgname);
+                $info = $this->getImageSize($imgname);
             }catch(\Exception $e){
                 return $this->createErrorResponse(404, "Image not readable and placeholder not found");
             }
@@ -129,6 +129,8 @@ class ThumbnailService
             imagejpeg($image, NULL, $quality);
         } else if ($type == 'png' || ($type==null && $info[2] == 3)) { //Original ist ein PNG
             imagepng($image, NULL, round($quality/10));
+        } else if ($type == 'svg' || ($type==null && $info[2] == 50)) { //Original ist ein SVG
+            imagepng($image, NULL, round($quality/10));
         } else if ($type == 'bmp' || ($type==null && $info[2] == 6)) { //Original ist ein BMP
             imageinterlace($image, 1);
             imagejpeg($image, NULL, $quality);
@@ -144,6 +146,8 @@ class ThumbnailService
         } else if ($type == 'jpg' || ($type==null && $info[2] == 2)) { //Original ist ein JPG
             $response->headers->set('Content-Type', 'image/jpeg');
         } else if ($type == 'png' || ($type==null && $info[2] == 3)) { //Original ist ein PNG
+            $response->headers->set('Content-Type', 'image/png');
+        } else if ($type == 'svg' || ($type==null && $info[2] == 50)) { //Original ist ein SVG
             $response->headers->set('Content-Type', 'image/png');
         } else if ($type == 'bmp' || ($type==null && $info[2] == 6)) { //Original ist ein BMP
             $response->headers->set('Content-Type', 'image/jpeg');
@@ -181,7 +185,7 @@ class ThumbnailService
         $maxx = $imagesizes['maxx'];
         $maxy = $imagesizes['maxy'];
 
-        if ($info[2] == 2 || $info[2] == 3 || $info[0] == 6) { //PNG, JPG
+        if ($info[2] == 2 || $info[2] == 3 || $info[2] == 6 || $info[2]== 50) { //PNG, JPG, BMP, SVG
             if ($mode == 'normal' || $mode == 'max') {
                 $image = imagecreatetruecolor($ngrx, $ngry);
             } else {
@@ -204,7 +208,7 @@ class ThumbnailService
                 imagecopyresampled($resizedimage, $oimage, 0, 0, 0, 0, $ngrx, $ngry, $ogrx, $ogry);
             }
         }
-        if ($info[2] == 3) { //PNG
+        if ($info[2] == 3 || $info[2] == 50) { //PNG, SVG
             imagesavealpha($image, true);
             imagealphablending($image, false);
         }
@@ -367,6 +371,12 @@ class ThumbnailService
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
             }
+        } else if ($info[2] == 50) { //Original ist ein svg
+            try {
+                $oimage = $this->imagecreatefromsvg($imgname);
+            } catch (\Exception $e) {
+                throw new \Exception($e->getMessage());
+            }
         } else {
             throw new \Exception("Error reading image");
         }
@@ -406,6 +416,8 @@ class ThumbnailService
                 $response->headers->set('Content-Type', 'image/png');
             } else if ($info[2] == 6) { //Original ist ein BMP
                 $response->headers->set('Content-Type', 'image/jpeg');
+            } else if ($info[2] == 50) { //Original ist ein SVG
+                $response->headers->set('Content-Type', 'image/png');
             }
             $etag=md5($uscachefile);
             $response->headers->set('Content-Length', strlen($uscachefile));
@@ -495,6 +507,47 @@ class ThumbnailService
         unset($body);
         //    Return image-object 
         return $image;
+    }
+
+    /**
+     * Create Image-Object from SVG-Image-File
+     *
+     * @param string $p_sFile
+     * @return resource
+     * @throws \Exception
+     */
+    private function imagecreatefromsvg($filePath){
+        $im = new Imagick();
+        $svg = file_get_contents($filePath);
+        $im->readImageBlob($svg);
+        $im->setImageFormat("png24");
+        $img=imagecreatefromstring($im->getImagesBlob());
+        $im->clear();
+        $im->destroy();
+        return $img;
+    }
+
+    private function getImageSize($filePath){
+        $imageSize=getimagesize($filePath);
+        if(!$imageSize && $this->isSvg($filePath)){
+            preg_match("#viewbox=[\"']\d* \d* (\d*+(\.?+\d*)) (\d*+(\.?+\d*))#i", file_get_contents($filePath), $d);
+            $relWidth = (float) $d[1];
+            $relHeight = (float) $d[3];
+            if($relWidth && $relHeight){
+                $imageSize=[
+                    $relWidth,
+                    $relHeight,
+                    50, //50 ist frei, wird als svg-Typ gesetzt
+                    'width="'.$relWidth.'" height="'.$relHeight.'"',
+                    'mime'=> 'image/svg+xml'
+                ];
+            }
+        }
+        return $imageSize;
+    }
+    public function isSvg($filePath )
+    {
+        return 'image/svg+xml' === mime_content_type(realpath($filePath));
     }
 
 }
