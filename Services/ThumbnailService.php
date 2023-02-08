@@ -8,6 +8,8 @@
 namespace Just\ThumbnailBundle\Services;
 
 use Doctrine\Common\Cache\CacheProvider;
+use Imagick;
+use ImagickPixel;
 use svay\FaceDetector;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -343,7 +345,7 @@ class ThumbnailService
         );
     }
 
-    private function getOriginalImage($imgname, $info)
+    private function getOriginalImage($imgname, &$info)
     {
         if ($info[2] == 1) { //Original ist ein GIF
             try {
@@ -377,6 +379,9 @@ class ThumbnailService
             } catch (\Exception $e) {
                 throw new \Exception($e->getMessage());
             }
+            $info[0]=imagesx($oimage);
+            $info[1]=imagesy($oimage);
+            $info[4]='width="'.$info[0].'" height="'.$info[1].'"';
         } else {
             throw new \Exception("Error reading image");
         }
@@ -441,71 +446,71 @@ class ThumbnailService
      */
     private function imagecreatefrombmp($p_sFile)
     {
-        //    Load the image into a string 
+        //    Load the image into a string
         $file = fopen($p_sFile, "rb");
         $read = fread($file, 10);
         while (!feof($file) && ($read <> "")) $read .= fread($file, 1024);
         $temp = unpack("H*", $read);
         $hex = $temp[1];
         $header = substr($hex, 0, 108);
-        //    Process the header 
-        //    Structure: http://www.fastgraph.com/help/bmp_header_format.html 
+        //    Process the header
+        //    Structure: http://www.fastgraph.com/help/bmp_header_format.html
         if (substr($header, 0, 4) == "424d") {
-            //    Cut it in parts of 2 bytes 
+            //    Cut it in parts of 2 bytes
             $header_parts = str_split($header, 2);
-            //    Get the width        4 bytes 
+            //    Get the width        4 bytes
             $width = hexdec($header_parts[19] . $header_parts[18]);
-            //    Get the height        4 bytes 
+            //    Get the height        4 bytes
             $height = hexdec($header_parts[23] . $header_parts[22]);
-            //    Unset the header params 
+            //    Unset the header params
             unset($header_parts);
         }else {
             throw new \Exception('Image not readable.');
         }
-        //    Define starting X and Y 
+        //    Define starting X and Y
         $x = 0;
         $y = 1;
-        //    Create newimage 
+        //    Create newimage
         $image = imagecreatetruecolor($width, $height);
-        //    Grab the body from the image 
+        //    Grab the body from the image
         $body = substr($hex, 108);
-        //    Calculate if padding at the end-line is needed 
-        //    Divided by two to keep overview. 
-        //    1 byte = 2 HEX-chars 
+        //    Calculate if padding at the end-line is needed
+        //    Divided by two to keep overview.
+        //    1 byte = 2 HEX-chars
         $body_size = (strlen($body) / 2);
         $header_size = ($width * $height);
-        //    Use end-line padding? Only when needed 
+        //    Use end-line padding? Only when needed
         $usePadding = ($body_size > ($header_size * 3) + 4);
-        //    Using a for-loop with index-calculation instaid of str_split to avoid large memory consumption 
-        //    Calculate the next DWORD-position in the body 
+        //    Using a for-loop with index-calculation instaid of str_split to avoid large memory consumption
+        //    Calculate the next DWORD-position in the body
         for ($i = 0; $i < $body_size; $i += 3) {
-            //    Calculate line-ending and padding 
+            //    Calculate line-ending and padding
             if ($x >= $width) {
-                //    If padding needed, ignore image-padding 
-                //    Shift i to the ending of the current 32-bit-block 
+                //    If padding needed, ignore image-padding
+                //    Shift i to the ending of the current 32-bit-block
                 if ($usePadding) $i += $width % 4;
-                //    Reset horizontal position 
+                //    Reset horizontal position
                 $x = 0;
-                //    Raise the height-position (bottom-up) 
+                //    Raise the height-position (bottom-up)
                 $y++;
-                //    Reached the image-height? Break the for-loop 
+                //    Reached the image-height? Break the for-loop
                 if ($y > $height) break;
             }
-            //    Calculation of the RGB-pixel (defined as BGR in image-data) 
-            //    Define $i_pos as absolute position in the body 
+            //    Calculation of the RGB-pixel (defined as BGR in image-data)
+            //    Define $i_pos as absolute position in the body
             $i_pos = $i * 2;
             $r = hexdec($body[$i_pos + 4] . $body[$i_pos + 5]);
             $g = hexdec($body[$i_pos + 2] . $body[$i_pos + 3]);
             $b = hexdec($body[$i_pos] . $body[$i_pos + 1]);
-            //    Calculate and draw the pixel 
+            //    Calculate and draw the pixel
             $color = imagecolorallocate($image, $r, $g, $b);
             imagesetpixel($image, $x, $height - $y, $color);
-            //    Raise the horizontal position 
+            //    Raise the horizontal position
             $x++;
         }
-        //    Unset the body / free the memory 
+        //    Unset the body / free the memory
         unset($body);
-        //    Return image-object 
+        //    Return image-object
         return $image;
     }
 
@@ -520,8 +525,13 @@ class ThumbnailService
         $im = new Imagick();
         $svg = file_get_contents($filePath);
         $im->readImageBlob($svg);
-        $im->setImageFormat("png24");
+        $im->transparentPaintImage("white", 0, 0, false);
+        $im->setImageFormat("png64");
+        $im->writeImage('/var/www/vhosts/ehotelier/var/cache/svgimage.png');
         $img=imagecreatefromstring($im->getImagesBlob());
+        imagealphablending($img, false);
+        imagesavealpha($img, true);
+        imagepng($img,'/var/www/vhosts/ehotelier/var/cache/svgimage2.png' );
         $im->clear();
         $im->destroy();
         return $img;
@@ -530,9 +540,8 @@ class ThumbnailService
     private function getImageSize($filePath){
         $imageSize=getimagesize($filePath);
         if(!$imageSize && $this->isSvg($filePath)){
-            preg_match("#viewbox=[\"']\d* \d* (\d*+(\.?+\d*)) (\d*+(\.?+\d*))#i", file_get_contents($filePath), $d);
-            $relWidth = (float) $d[1];
-            $relHeight = (float) $d[3];
+            $svgXML = simplexml_load_file($filePath);
+            list($originX, $originY, $relWidth, $relHeight) = explode(' ', $svgXML['viewBox']);
             if($relWidth && $relHeight){
                 $imageSize=[
                     $relWidth,
@@ -547,7 +556,7 @@ class ThumbnailService
     }
     public function isSvg($filePath )
     {
-        return 'image/svg+xml' === mime_content_type(realpath($filePath));
+        return 'image/svg+xml' === mime_content_type(realpath($filePath)) || 'image/svg' === mime_content_type(realpath($filePath));
     }
 
 }
