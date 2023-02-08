@@ -527,11 +527,11 @@ class ThumbnailService
         $im->readImageBlob($svg);
         $im->transparentPaintImage("white", 0, 0, false);
         $im->setImageFormat("png64");
-        $im->writeImage('/var/www/vhosts/ehotelier/var/cache/svgimage.png');
+        //$im->writeImage('/var/www/vhosts/ehotelier/var/cache/svgimage.png');
         $img=imagecreatefromstring($im->getImagesBlob());
         imagealphablending($img, false);
         imagesavealpha($img, true);
-        imagepng($img,'/var/www/vhosts/ehotelier/var/cache/svgimage2.png' );
+        //imagepng($img,'/var/www/vhosts/ehotelier/var/cache/svgimage2.png' );
         $im->clear();
         $im->destroy();
         return $img;
