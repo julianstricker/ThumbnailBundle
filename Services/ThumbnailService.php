@@ -523,10 +523,11 @@ class ThumbnailService
      */
     private function imagecreatefromsvg($filePath){
         $im = new Imagick();
+        $im->setBackgroundColor(new ImagickPixel('transparent'));
         $svg = file_get_contents($filePath);
         $im->readImageBlob($svg);
-        $im->transparentPaintImage("white", 0, 0, false);
-        $im->setImageFormat("png64");
+        //$im->transparentPaintImage("white", 0, 0, false);
+        $im->setImageFormat("png32");
         //$im->writeImage('/var/www/vhosts/ehotelier/var/cache/svgimage.png');
         $img=imagecreatefromstring($im->getImagesBlob());
         imagealphablending($img, false);
