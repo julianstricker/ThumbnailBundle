@@ -23,6 +23,7 @@ class ThumbnailService
     private $root_dir;
     private $cachingService;
     private $debug=false;
+    private $acceptableContentTypes;
 
     /**
      * ThumbnailService constructor.
@@ -52,12 +53,12 @@ class ThumbnailService
      * @param string $type 'gif','jpg','bmp','png','webp', or null for same output file type as input file
      * @return Response
      */
-    public function generateResponseForImage($img, $maxxstring, $maxystring, $mode, $placeholderparam='',$center='', $quality=75, $type=null)
+    public function generateResponseForImage($img, $maxxstring, $maxystring, $mode, $acceptableContentTypes, $placeholderparam='',$center='', $quality=75, $type=null)
     {
         $imagesrootdir = isset($this->imagesrootdir) ? $this->imagesrootdir : $this->root_dir . '/../web/';
         $placeholder = $placeholderparam != '' ? $placeholderparam : (isset($this->placeholder) ? $this->placeholder : null);
         $imgname = $imagesrootdir . ltrim($img, '/\\');
-
+        $this->acceptableContentTypes=$acceptableContentTypes;
         if (!is_file($imgname) || !is_readable($imgname)) {
             if (is_null($placeholder)) return $this->createErrorResponse(404, "Image not found");
             $imgname = $placeholder;
@@ -77,6 +78,11 @@ class ThumbnailService
                 return $this->createErrorResponse(404, "Image not readable and placeholder not found");
             }
         }
+
+        if($type=='' &&  $info[2] !== 50 && in_array('image/webp',$this->acceptableContentTypes)){
+            $type='webp';
+        }
+
         $ctime = filectime($imgname);
         $cachename = md5($imgname .'_'. $maxxstring .'_'. $maxystring .'_'. $mode . '_' . $center .'_'. $quality.'_'.$type.'_'. $ctime);
         $maxx=$maxxstring=='' ? null : intval($maxxstring,10);
@@ -412,6 +418,7 @@ class ThumbnailService
         if ($cachefile = $this->cachingService->fetch('JustThumbnailBundle' . $cachename)) {
             //ist bereits im cache:
             $uscachefile = unserialize($cachefile);
+            $info=getimagesizefromstring($uscachefile);
             $response = new Response($uscachefile);
             if ($info[2] == 1) { //Original ist ein GIF
                 $response->headers->set('Content-Type', 'image/gif');
@@ -423,6 +430,8 @@ class ThumbnailService
                 $response->headers->set('Content-Type', 'image/jpeg');
             } else if ($info[2] == 50) { //Original ist ein SVG
                 $response->headers->set('Content-Type', 'image/png');
+            } else { //Ist ein Webp
+                $response->headers->set('Content-Type', 'image/webp');
             }
             $etag=md5($uscachefile);
             $response->headers->set('Content-Length', strlen($uscachefile));

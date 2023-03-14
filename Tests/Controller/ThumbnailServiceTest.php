@@ -31,6 +31,16 @@ class ThumbnailServiceTest extends KernelTestCase
      */
     protected $thumbnailservice;
 
+    protected $acceptableContentTypes= [
+        "text/html",
+        "application/xhtml+xml",
+        "image/avif",
+        "image/webp",
+        "image/apng",
+        "application/xml",
+        "application/signed-exchange",
+        "*/*"
+    ];
 
     /**
      * {@inheritDoc}
@@ -48,42 +58,42 @@ class ThumbnailServiceTest extends KernelTestCase
     }
 
     public function testImagePlaceholder(){
-        $response = $this->thumbnailservice->generateResponseForImage('nontxisting.file', 100, 100, 'crop', $this->placeholder);
+        $response = $this->thumbnailservice->generateResponseForImage('nontxisting.file', 100, 100, 'crop', $this->acceptableContentTypes, $this->placeholder);
         $this->assertTrue($response->headers->contains('Content-Type','image/jpeg'));
         $this->assertTrue($response->getStatusCode()==200);
     }
 
     public function testImagePlaceholderNotFound(){
-        $response = $this->thumbnailservice->generateResponseForImage('nontxisting.file', 100, 100, 'crop', 'nontxisting.file');
+        $response = $this->thumbnailservice->generateResponseForImage('nontxisting.file', 100, 100, 'crop', $this->acceptableContentTypes, 'nontxisting.file');
         $this->assertTrue($response->getStatusCode()==404);
     }
     public function testImageKaputt(){
-        $response = $this->thumbnailservice->generateResponseForImage('kaputt.jpeg', 100, 100, 'crop', 'nontxisting.file');
+        $response = $this->thumbnailservice->generateResponseForImage('kaputt.jpeg', 100, 100, 'crop', $this->acceptableContentTypes, 'nontxisting.file');
         $this->assertTrue($response->getStatusCode()==404);
     }
 
     public function testCropModePng(){
-        $response = $this->thumbnailservice->generateResponseForImage('cats.png', 100, 100, 'crop', '');//$this->placeholder);
+        $response = $this->thumbnailservice->generateResponseForImage('cats.png', 100, 100, 'crop', $this->acceptableContentTypes, '');//$this->placeholder);
         $this->assertTrue($response->headers->contains('Content-Type','image/png'));
         $this->assertTrue($response->getStatusCode()==200);
     }
     public function testCropModeGif(){
-        $response = $this->thumbnailservice->generateResponseForImage('cats.gif', 100, 100, 'crop', '');//$this->placeholder);
+        $response = $this->thumbnailservice->generateResponseForImage('cats.gif', 100, 100, 'crop', $this->acceptableContentTypes, '');//$this->placeholder);
         $this->assertTrue($response->headers->contains('Content-Type','image/gif'));
         $this->assertTrue($response->getStatusCode()==200);
     }
     public function testCropModeJpeg(){
-        $response = $this->thumbnailservice->generateResponseForImage('cats.jpeg', 100, 100, 'crop', '');//$this->placeholder);
+        $response = $this->thumbnailservice->generateResponseForImage('cats.jpeg', 100, 100, 'crop', $this->acceptableContentTypes, '');//$this->placeholder);
         $this->assertTrue($response->headers->contains('Content-Type','image/jpeg'));
         $this->assertTrue($response->getStatusCode()==200);
     }
     public function testCropModeBmp(){
-        $response = $this->thumbnailservice->generateResponseForImage('cats.bmp', 100, 100, 'crop', '');//$this->placeholder);
+        $response = $this->thumbnailservice->generateResponseForImage('cats.bmp', 100, 100, 'crop', $this->acceptableContentTypes, '');//$this->placeholder);
         $this->assertTrue($response->headers->contains('Content-Type','image/jpeg'));
         $this->assertTrue($response->getStatusCode()==200);
     }
     public function testMaxModeJpeg(){
-        $response = $this->thumbnailservice->generateResponseForImage('cats.jpeg', 1000, 50, 'max', '');//$this->placeholder);
+        $response = $this->thumbnailservice->generateResponseForImage('cats.jpeg', 1000, 50, 'max', $this->acceptableContentTypes, '');//$this->placeholder);
         $this->assertTrue($response->headers->contains('Content-Type','image/jpeg'));
         $this->assertTrue($response->getStatusCode()==200);
     }

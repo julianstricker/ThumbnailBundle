@@ -32,9 +32,11 @@ class ThumbnailController extends Controller {
         $placeholder = $request->get('placeholder', '');
         $center = $request->get('center', '');
         $type = $request->get('type', '');
+
+
         /** @var ThumbnailService $thumbnailservice */
         $thumbnailservice = $this->get('just_thumbnail');
-        $response = $thumbnailservice->generateResponseForImage($img, $maxx, $maxy, $mode, $placeholder,$center, $quality,$type);
+        $response = $thumbnailservice->generateResponseForImage($img, $maxx, $maxy, $mode, $request->getAcceptableContentTypes(), $placeholder, $center, $quality, $type);
         return $response;
     }
 
