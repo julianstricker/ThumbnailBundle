@@ -387,13 +387,14 @@ class ThumbnailService
             }
         } else if ($info[2] == 50) { //Original ist ein svg
             if($this->svgexportcommand!==null) {
+                ini_set('display_errors', 1);
+                error_reporting(E_ALL);
                 $temp_file = tempnam(sys_get_temp_dir(), 'ThumbnailService');
                 //dump($this->svgexportcommand.' '.$imgname.' '.$temp_file);
                 copy($imgname, $temp_file.'.svg');
                 $lastline='';
                 try {
-                    //ini_set('display_errors', 1);
-                    //error_reporting(E_ALL);
+
                     $lastline = shell_exec($this->svgexportcommand.' '.$temp_file.'.svg '.$temp_file);
                     //dump($lastline);
                 } catch (\Exception $e) {
@@ -407,12 +408,17 @@ class ThumbnailService
             try {
                 $oimage = $this->imagecreatefromsvg($imgname);
             } catch (\Exception $e) {
-                unlink($temp_file.'.svg');
-                unlink($temp_file);
+                if(isset($temp_file)){
+                    unlink($temp_file.'.svg');
+                    unlink($temp_file);
+                }
+
                 throw new \Exception($e->getMessage());
             }
-            unlink($temp_file.'.svg');
-            unlink($temp_file);
+            if(isset($temp_file)){
+                unlink($temp_file.'.svg');
+                unlink($temp_file);
+            }
             $info[0]=imagesx($oimage);
             $info[1]=imagesy($oimage);
             $info[4]='width="'.$info[0].'" height="'.$info[1].'"';
