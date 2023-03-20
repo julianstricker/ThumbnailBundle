@@ -26,10 +26,11 @@ class Configuration implements ConfigurationInterface {
 
         $rootNode
             ->children()
-                ->variableNode('imagesrootdir')->end()
-                ->variableNode('placeholder')->end()
-                ->integerNode('expiretime')->end()
-                ->integerNode('quality')->end()
+            ->variableNode('imagesrootdir')->end()
+            ->variableNode('placeholder')->end()
+            ->integerNode('expiretime')->end()
+            ->integerNode('quality')->end()
+            ->variableNode('svgexportcommand')->end()
             ->end()
         ;
 

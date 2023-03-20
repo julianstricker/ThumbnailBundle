@@ -1,7 +1,7 @@
 services:
-#    just_thumbnail.example:
-#        class: Just\ThumbnailBundle\Example
-#        arguments: [@service_id, "plain_value", %parameter%]
+    #    just_thumbnail.example:
+    #        class: Just\ThumbnailBundle\Example
+    #        arguments: [@service_id, "plain_value", %parameter%]
     just_thumbnail.twig.extension:
         class: Just\ThumbnailBundle\Twig\JustThumbnailExtension
         arguments: ["@router"]
@@ -11,5 +11,5 @@ services:
 
     just_thumbnail:
         class:        Just\ThumbnailBundle\Services\ThumbnailService
-        arguments: [ "%just_thumbnail.imagesrootdir%", "%just_thumbnail.placeholder%","%just_thumbnail.expiretime%", "%kernel.root_dir%", "@cache", "@logger" ]
+        arguments: [ "%just_thumbnail.imagesrootdir%", "%just_thumbnail.placeholder%","%just_thumbnail.expiretime%", "%kernel.root_dir%", "@cache", "%just_thumbnail.svgexportcommand%" ]
         public: true

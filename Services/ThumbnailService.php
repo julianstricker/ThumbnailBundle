@@ -24,6 +24,10 @@ class ThumbnailService
     private $cachingService;
     private $debug=false;
     private $acceptableContentTypes;
+    /**
+     * @var mixed|null
+     */
+    private $svgexportcommand;
 
     /**
      * ThumbnailService constructor.
@@ -33,13 +37,15 @@ class ThumbnailService
      * @param string $root_dir
      * @param CacheProvider $cachingService
      */
-    public function __construct($imagesrootdir, $placeholder, $expiretime, $root_dir, CacheProvider $cachingService)
+
+    public function __construct($imagesrootdir, $placeholder, $expiretime, $root_dir, CacheProvider $cachingService, $svgexportcommand=null)
     {
         $this->imagesrootdir = $imagesrootdir;
         $this->placeholder = $placeholder;
         $this->expiretime = $expiretime;
         $this->root_dir = $root_dir;
         $this->cachingService = $cachingService;
+        $this->svgexportcommand = $svgexportcommand;
     }
 
     /**
@@ -380,6 +386,21 @@ class ThumbnailService
                 throw new \Exception($e->getMessage());
             }
         } else if ($info[2] == 50) { //Original ist ein svg
+            if($this->svgexportcommand!==null) {
+                $temp_file = tempnam(sys_get_temp_dir(), 'ThumbnailService');
+                try {
+                    //ini_set('display_errors', 1);
+                    //error_reporting(E_ALL);
+                    $lastline = shell_exec($this->svgexportcommand.' '.$imgname.' '.$temp_file);
+                    //dump($lastline);
+                } catch (\Exception $e) {
+                    throw new \Exception('jojo'.$e->getMessage());
+                }
+                $imgname=$temp_file;
+            }
+
+
+
             try {
                 $oimage = $this->imagecreatefromsvg($imgname);
             } catch (\Exception $e) {
