@@ -7,7 +7,7 @@
 
 namespace Just\ThumbnailBundle\Tests\Controller;
 
-use Doctrine\Common\Cache\FilesystemCache;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Just\ThumbnailBundle\Services\ThumbnailService;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Filesystem\Filesystem;
@@ -19,9 +19,7 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class ThumbnailServiceTest extends KernelTestCase
 {
-    /**
-     * @var Filesystem
-     */
+
     protected $placeholder;
 
     protected $fixturesDir;
@@ -50,9 +48,8 @@ class ThumbnailServiceTest extends KernelTestCase
         $assetsDir = __DIR__.'/../Fixtures/assets/';
         $this->placeholder=$assetsDir.'noimage.jpg';
         $rootDir=__DIR__;
-        //$cachingService=new ApcuCache();
-        $cachingService=new FilesystemCache(__DIR__.'/../../../../../var/cache/test/');
-        $cachingService->flushAll();
+        $cachingService=new FilesystemAdapter('',null,__DIR__.'/../../../../../var/cache/test/');
+        $cachingService->prune();
 
         $this->thumbnailservice = new ThumbnailService($assetsDir, null /*$this->placeholder*/, 100, $rootDir, $cachingService);
     }

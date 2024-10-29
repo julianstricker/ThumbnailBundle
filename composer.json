@@ -12,9 +12,9 @@
         "MIT"
     ],
     "require" : {
-        "php": ">=5.4",
-        "symfony/framework-bundle": "^2.3 || ^3.4.26 || ^4.1.12",
-        "doctrine/common": "~2.4",
+        "php": ">=5.4 || ^7.0 || ^8.0",
+        "symfony/framework-bundle": "^2.3 || ^3.4.26 || ^4.1.12 || ^5.0",
+        "symfony/cache": "~2.4 || ~3.4 || ~4.0 || ~5.0",
         "mauricesvay/php-facedetection": "~0.1",
         "ext-gd": "*",
         "ext-fileinfo": "*"

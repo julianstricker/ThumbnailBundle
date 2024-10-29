@@ -8,9 +8,11 @@
 namespace Just\ThumbnailBundle\Services;
 
 use Doctrine\Common\Cache\CacheProvider;
+use Symfony\Component\Cache\CacheItem;
 use Imagick;
 use ImagickPixel;
 use svay\FaceDetector;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 
@@ -35,10 +37,10 @@ class ThumbnailService
      * @param string $placeholder
      * @param int $expiretime
      * @param string $root_dir
-     * @param CacheProvider $cachingService
+     * @param AdapterInterface $cachingService
      */
 
-    public function __construct($imagesrootdir, $placeholder, $expiretime, $root_dir, CacheProvider $cachingService, $svgexportcommand=null)
+    public function __construct($imagesrootdir, $placeholder, $expiretime, $root_dir, AdapterInterface $cachingService, $svgexportcommand=null)
     {
         $this->imagesrootdir = $imagesrootdir;
         $this->placeholder = $placeholder;
@@ -153,7 +155,10 @@ class ThumbnailService
         }
         $ImageData = ob_get_contents();
         ob_end_clean(); // stop this output buffer
-        $this->cachingService->save('JustThumbnailBundle' . $cachename, serialize($ImageData),$this->expiretime);
+        $cacheItem = new CacheItem('JustThumbnailBundle' . $cachename);
+        $cacheItem->set(serialize($ImageData));
+        $cacheItem->expiresAfter($this->expiretime);
+        $this->cachingService->save($cacheItem);
         $response = new Response($ImageData);
         if ($type == 'gif' || ($type==null && $info[2] == 1)) { //Original ist ein GIF
             $response->headers->set('Content-Type', 'image/gif');
@@ -435,7 +440,7 @@ class ThumbnailService
      * @return bool
      */
     private function imageIsCached($cachename){
-        return $this->cachingService->contains('JustThumbnailBundle' . $cachename);
+        return $this->cachingService->hasItem('JustThumbnailBundle' . $cachename);
     }
 
     /**
@@ -449,7 +454,7 @@ class ThumbnailService
     private function getResponseForCachedImage($cachename, $ctime, $info)
     {
         $expires = isset($this->expiretime) ? $this->expiretime : 1 * 24 * 60 * 60;
-        if ($cachefile = $this->cachingService->fetch('JustThumbnailBundle' . $cachename)) {
+        if ($cachefile = $this->cachingService->getItem('JustThumbnailBundle' . $cachename)) {
             //ist bereits im cache:
             $uscachefile = unserialize($cachefile);
             $info=getimagesizefromstring($uscachefile);
