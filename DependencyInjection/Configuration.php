@@ -22,8 +22,12 @@ class Configuration implements ConfigurationInterface {
      */
     public function getConfigTreeBuilder() {
         $treeBuilder = new TreeBuilder('just_thumbnail');
-        $rootNode = $treeBuilder->root('just_thumbnail');
-
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root('just_thumbnail');
+        }
         $rootNode
             ->children()
             ->variableNode('imagesrootdir')->end()
