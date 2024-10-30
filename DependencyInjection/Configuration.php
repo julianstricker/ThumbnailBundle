@@ -21,7 +21,7 @@ class Configuration implements ConfigurationInterface {
      * {@inheritdoc}
      */
     public function getConfigTreeBuilder() {
-        $treeBuilder = new TreeBuilder();
+        $treeBuilder = new TreeBuilder('just_thumbnail');
         $rootNode = $treeBuilder->root('just_thumbnail');
 
         $rootNode
