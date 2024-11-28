@@ -12,7 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class ThumbnailController extends Controller {
+class ThumbnailController extends AbstractController {
 
     /**
      * @param Request $request
