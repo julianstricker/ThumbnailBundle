@@ -155,7 +155,7 @@ class ThumbnailService
         }
         $ImageData = ob_get_contents();
         ob_end_clean(); // stop this output buffer
-        $cacheItem = new CacheItem('JustThumbnailBundle' . $cachename);
+        $cacheItem = $this->cachingService->getItem('JustThumbnailBundle' . $cachename);
         $cacheItem->set(serialize($ImageData));
         $cacheItem->expiresAfter($this->expiretime);
         $this->cachingService->save($cacheItem);
@@ -456,7 +456,7 @@ class ThumbnailService
         $expires = isset($this->expiretime) ? $this->expiretime : 1 * 24 * 60 * 60;
         if ($cachefile = $this->cachingService->getItem('JustThumbnailBundle' . $cachename)) {
             //ist bereits im cache:
-            $uscachefile = unserialize($cachefile);
+            $uscachefile = unserialize($cachefile->get());
             $info=getimagesizefromstring($uscachefile);
             $response = new Response($uscachefile);
             if ($info[2] == 1) { //Original ist ein GIF
