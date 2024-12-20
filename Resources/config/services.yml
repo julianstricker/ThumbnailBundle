@@ -9,7 +9,12 @@ services:
             -  { name: twig.extension }
         public: true
 
-    just_thumbnail:
-        class:        Just\ThumbnailBundle\Services\ThumbnailService
-        arguments: [ "%just_thumbnail.imagesrootdir%", "%just_thumbnail.placeholder%","%just_thumbnail.expiretime%", "%kernel.root_dir%", "@cache", "%just_thumbnail.svgexportcommand%" ]
+    Just\ThumbnailBundle\Services\ThumbnailService:
+        arguments: [ "%just_thumbnail.imagesrootdir%", "%just_thumbnail.placeholder%","%just_thumbnail.expiretime%", "%kernel.project_dir%", "@cache", "%just_thumbnail.svgexportcommand%" ]
         public: true
+        tags:
+            - { name: just_thumbnail }
+
+    Just\ThumbnailBundle\Controller\ThumbnailController:
+        arguments:
+            $thumbnailService: "just_thumbnail"

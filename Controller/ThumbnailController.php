@@ -14,6 +14,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ThumbnailController extends AbstractController {
 
+    public function __construct(private ThumbnailService $thumbnailService)
+    {
+
+    }
+
     /**
      * @param Request $request
      * @return Response
@@ -33,10 +38,7 @@ class ThumbnailController extends AbstractController {
         $center = $request->get('center', '');
         $type = $request->get('type', '');
 
-
-        /** @var ThumbnailService $thumbnailservice */
-        $thumbnailservice = $this->get('just_thumbnail');
-        $response = $thumbnailservice->generateResponseForImage($img, $maxx, $maxy, $mode, $request->getAcceptableContentTypes(), $placeholder, $center, $quality, $type);
+        $response = $this->thumbnailService->generateResponseForImage($img, $maxx, $maxy, $mode, $request->getAcceptableContentTypes(), $placeholder, $center, $quality, $type);
         return $response;
     }
 

@@ -20,7 +20,8 @@ class Configuration implements ConfigurationInterface {
     /**
      * {@inheritdoc}
      */
-    public function getConfigTreeBuilder() {
+    public function getConfigTreeBuilder(): TreeBuilder
+    {
         $treeBuilder = new TreeBuilder('just_thumbnail');
         if (method_exists($treeBuilder, 'getRootNode')) {
             $rootNode = $treeBuilder->getRootNode();

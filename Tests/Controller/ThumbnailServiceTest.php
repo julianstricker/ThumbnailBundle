@@ -57,42 +57,42 @@ class ThumbnailServiceTest extends KernelTestCase
     public function testImagePlaceholder(){
         $response = $this->thumbnailservice->generateResponseForImage('nontxisting.file', 100, 100, 'crop', $this->acceptableContentTypes, $this->placeholder);
         $this->assertTrue($response->headers->contains('Content-Type','image/jpeg'));
-        $this->assertTrue($response->getStatusCode()==200);
+        $this->assertTrue($response->getStatusCode()==\Symfony\Component\HttpFoundation\Response::HTTP_OK);
     }
 
     public function testImagePlaceholderNotFound(){
         $response = $this->thumbnailservice->generateResponseForImage('nontxisting.file', 100, 100, 'crop', $this->acceptableContentTypes, 'nontxisting.file');
-        $this->assertTrue($response->getStatusCode()==404);
+        $this->assertTrue($response->getStatusCode()==\Symfony\Component\HttpFoundation\Response::HTTP_NOT_FOUND);
     }
     public function testImageKaputt(){
         $response = $this->thumbnailservice->generateResponseForImage('kaputt.jpeg', 100, 100, 'crop', $this->acceptableContentTypes, 'nontxisting.file');
-        $this->assertTrue($response->getStatusCode()==404);
+        $this->assertTrue($response->getStatusCode()==\Symfony\Component\HttpFoundation\Response::HTTP_NOT_FOUND);
     }
 
     public function testCropModePng(){
         $response = $this->thumbnailservice->generateResponseForImage('cats.png', 100, 100, 'crop', $this->acceptableContentTypes, '');//$this->placeholder);
         $this->assertTrue($response->headers->contains('Content-Type','image/png'));
-        $this->assertTrue($response->getStatusCode()==200);
+        $this->assertTrue($response->getStatusCode()==\Symfony\Component\HttpFoundation\Response::HTTP_OK);
     }
     public function testCropModeGif(){
         $response = $this->thumbnailservice->generateResponseForImage('cats.gif', 100, 100, 'crop', $this->acceptableContentTypes, '');//$this->placeholder);
         $this->assertTrue($response->headers->contains('Content-Type','image/gif'));
-        $this->assertTrue($response->getStatusCode()==200);
+        $this->assertTrue($response->getStatusCode()==\Symfony\Component\HttpFoundation\Response::HTTP_OK);
     }
     public function testCropModeJpeg(){
         $response = $this->thumbnailservice->generateResponseForImage('cats.jpeg', 100, 100, 'crop', $this->acceptableContentTypes, '');//$this->placeholder);
         $this->assertTrue($response->headers->contains('Content-Type','image/jpeg'));
-        $this->assertTrue($response->getStatusCode()==200);
+        $this->assertTrue($response->getStatusCode()==\Symfony\Component\HttpFoundation\Response::HTTP_OK);
     }
     public function testCropModeBmp(){
         $response = $this->thumbnailservice->generateResponseForImage('cats.bmp', 100, 100, 'crop', $this->acceptableContentTypes, '');//$this->placeholder);
         $this->assertTrue($response->headers->contains('Content-Type','image/jpeg'));
-        $this->assertTrue($response->getStatusCode()==200);
+        $this->assertTrue($response->getStatusCode()==\Symfony\Component\HttpFoundation\Response::HTTP_OK);
     }
     public function testMaxModeJpeg(){
         $response = $this->thumbnailservice->generateResponseForImage('cats.jpeg', 1000, 50, 'max', $this->acceptableContentTypes, '');//$this->placeholder);
         $this->assertTrue($response->headers->contains('Content-Type','image/jpeg'));
-        $this->assertTrue($response->getStatusCode()==200);
+        $this->assertTrue($response->getStatusCode()==\Symfony\Component\HttpFoundation\Response::HTTP_OK);
     }
 
 

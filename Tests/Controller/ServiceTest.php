@@ -21,8 +21,8 @@ class ServiceTest extends KernelTestCase
     public function testService()
     {
         self::bootKernel();
-        $thumbnailservice = static::$kernel->getContainer()->get('just_thumbnail');
-        $this->assertInstanceOf('Just\ThumbnailBundle\Services\ThumbnailService', $thumbnailservice);
+        $thumbnailservice = static::$kernel->getContainer()->get(\Just\ThumbnailBundle\Services\ThumbnailService::class);
+        $this->assertInstanceOf(\Just\ThumbnailBundle\Services\ThumbnailService::class, $thumbnailservice);
     }
 
 }

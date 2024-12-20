@@ -3,8 +3,10 @@
 namespace Just\ThumbnailBundle\Twig;
 
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
+use Twig\Extension\AbstractExtension;
+use Twig\TwigFunction;
 
-class JustThumbnailExtension extends \Twig_Extension {
+class JustThumbnailExtension extends AbstractExtension {
     
     protected $router;
 
@@ -17,9 +19,7 @@ class JustThumbnailExtension extends \Twig_Extension {
      * {@inheritdoc}
      */
     public function getFunctions() {
-        return array(
-            new \Twig_SimpleFunction('thumbnail', array($this, 'thumbnail'),array('is_safe' => array('html')))
-        );
+        return [new TwigFunction('thumbnail', [$this, 'thumbnail'],['is_safe' => ['html']])];
     }
 
     /**
@@ -27,9 +27,9 @@ class JustThumbnailExtension extends \Twig_Extension {
      * @return int
      */
     public function thumbnail($params) {
-        $extension=isset($params['extension']) ? $params['extension'] : '';
-        $maxx=isset($params['maxx']) ? $params['maxx'] : '';
-        $maxy=isset($params['maxy']) ? $params['maxy'] : '';
+        $extension=$params['extension'] ?? '';
+        $maxx=$params['maxx'] ?? '';
+        $maxy=$params['maxy'] ?? '';
         $route='just_thumbnail_';
         if ($maxx!='' && $maxy!=''){
             $route='just_thumbnail';

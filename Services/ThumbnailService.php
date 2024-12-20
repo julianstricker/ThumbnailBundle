@@ -19,35 +19,20 @@ use Symfony\Component\HttpFoundation\Response;
 class ThumbnailService
 {
 
-    private $imagesrootdir;
-    private $placeholder;
-    private $expiretime;
-    private $root_dir;
-    private $cachingService;
     private $debug=false;
     private $acceptableContentTypes;
-    /**
-     * @var mixed|null
-     */
-    private $svgexportcommand;
 
     /**
      * ThumbnailService constructor.
      * @param string $imagesrootdir
      * @param string $placeholder
      * @param int $expiretime
-     * @param string $root_dir
+     * @param string $projectDir
      * @param AdapterInterface $cachingService
      */
 
-    public function __construct($imagesrootdir, $placeholder, $expiretime, $root_dir, AdapterInterface $cachingService, $svgexportcommand=null)
+    public function __construct(private $imagesrootdir, private $placeholder, private $expiretime, private $projectDir, private AdapterInterface $cachingService, private $svgexportcommand=null)
     {
-        $this->imagesrootdir = $imagesrootdir;
-        $this->placeholder = $placeholder;
-        $this->expiretime = $expiretime;
-        $this->root_dir = $root_dir;
-        $this->cachingService = $cachingService;
-        $this->svgexportcommand = $svgexportcommand;
     }
 
     /**
@@ -63,8 +48,8 @@ class ThumbnailService
      */
     public function generateResponseForImage($img, $maxxstring, $maxystring, $mode, $acceptableContentTypes, $placeholderparam='',$center='', $quality=75, $type=null)
     {
-        $imagesrootdir = isset($this->imagesrootdir) ? $this->imagesrootdir : $this->root_dir . '/../web/';
-        $placeholder = $placeholderparam != '' ? $placeholderparam : (isset($this->placeholder) ? $this->placeholder : null);
+        $imagesrootdir = $this->imagesrootdir ?? $this->projectDir . '/public/';
+        $placeholder = $placeholderparam != '' ? $placeholderparam : ($this->placeholder ?? null);
         $imgname = $imagesrootdir . ltrim($img, '/\\');
         $this->acceptableContentTypes=$acceptableContentTypes;
         if (!is_file($imgname) || !is_readable($imgname)) {
@@ -82,7 +67,7 @@ class ThumbnailService
             $imgname = $placeholder;
             try{
                 $info = $this->getImageSize($imgname);
-            }catch(\Exception $e){
+            }catch(\Exception){
                 return $this->createErrorResponse(404, "Image not readable and placeholder not found");
             }
         }
@@ -136,7 +121,7 @@ class ThumbnailService
      */
     private function createResponseForImage($image, $info, $cachename, $ctime, $quality = 75, $type=null)
     {
-        $expires = isset($this->expiretime) ? $this->expiretime : 1 * 24 * 60 * 60;
+        $expires = $this->expiretime ?? 1 * 24 * 60 * 60;
         ob_start(); // start a new output buffer
         if ($type == 'gif' || ($type==null && $info[2] == 1)) { //Original ist ein GIF
             imagegif($image, NULL);
@@ -354,12 +339,7 @@ class ThumbnailService
                 }
             }
         }
-        return Array(
-            'ngrx' => $ngrx,
-            'ngry' => $ngry,
-            'maxx' => $maxx,
-            'maxy' => $maxy
-        );
+        return ['ngrx' => $ngrx, 'ngry' => $ngry, 'maxx' => $maxx, 'maxy' => $maxy];
     }
 
     private function getOriginalImage($imgname, &$info)
@@ -453,7 +433,7 @@ class ThumbnailService
      */
     private function getResponseForCachedImage($cachename, $ctime, $info)
     {
-        $expires = isset($this->expiretime) ? $this->expiretime : 1 * 24 * 60 * 60;
+        $expires = $this->expiretime ?? 1 * 24 * 60 * 60;
         if ($cachefile = $this->cachingService->getItem('JustThumbnailBundle' . $cachename)) {
             //ist bereits im cache:
             $uscachefile = unserialize($cachefile->get());
@@ -503,7 +483,7 @@ class ThumbnailService
         $header = substr($hex, 0, 108);
         //    Process the header
         //    Structure: http://www.fastgraph.com/help/bmp_header_format.html
-        if (substr($header, 0, 4) == "424d") {
+        if (str_starts_with($header, "424d")) {
             //    Cut it in parts of 2 bytes
             $header_parts = str_split($header, 2);
             //    Get the width        4 bytes
@@ -590,7 +570,7 @@ class ThumbnailService
         $imageSize=getimagesize($filePath);
         if(!$imageSize && $this->isSvg($filePath)){
             $svgXML = simplexml_load_file($filePath);
-            list($originX, $originY, $relWidth, $relHeight) = explode(' ', $svgXML['viewBox']);
+            [$originX, $originY, $relWidth, $relHeight] = explode(' ', $svgXML['viewBox']);
             if($relWidth && $relHeight){
                 $imageSize=[
                     $relWidth,
