@@ -67,7 +67,7 @@ class ThumbnailService
             $imgname = $placeholder;
             try{
                 $info = $this->getImageSize($imgname);
-            }catch(\Exception){
+            }catch(\Exception $e){
                 return $this->createErrorResponse(404, "Image not readable and placeholder not found");
             }
         }
@@ -566,7 +566,13 @@ class ThumbnailService
         return $img;
     }
 
+    /**
+     * @throws \Exception
+     */
     private function getImageSize($filePath){
+        if($filePath==null){
+            throw new \Exception('filePath is NULL');
+        }
         $imageSize=getimagesize($filePath);
         if(!$imageSize && $this->isSvg($filePath)){
             $svgXML = simplexml_load_file($filePath);
