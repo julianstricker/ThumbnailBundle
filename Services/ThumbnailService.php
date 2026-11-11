@@ -80,6 +80,9 @@ class ThumbnailService
         $cachename = md5($imgname .'_'. $maxxstring .'_'. $maxystring .'_'. $mode . '_' . $center .'_'. $quality.'_'.$type.'_'. $ctime);
         $maxx=$maxxstring=='' ? null : intval($maxxstring,10);
         $maxy=$maxystring=='' ? null : intval($maxystring,10);
+        if (($maxx !== null && $maxx <= 0) || ($maxy !== null && $maxy <= 0)) {
+            return $this->createErrorResponse(400, "Invalid thumbnail dimensions");
+        }
         //ist bereits im cache?
         if ($this->imageIsCached($cachename)) return  $this->getResponseForCachedImage($cachename, $ctime, $info);
         //thumbnail erstellen:
